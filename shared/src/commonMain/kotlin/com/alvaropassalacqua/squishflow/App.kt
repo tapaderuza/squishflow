@@ -1,17 +1,8 @@
 package com.alvaropassalacqua.squishflow
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,16 +12,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.clipPath
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -44,15 +25,7 @@ import com.revenuecat.purchases.kmp.ui.revenuecatui.Paywall
 import com.revenuecat.purchases.kmp.ui.revenuecatui.PaywallOptions
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.math.abs
 
-private val Cream = Color(0xFF0C0E0D)
-private val Ink = Color(0xFFF2F0E9)
-private val Muted = Color(0xFF969991)
-private val Sage = Color(0xFF8DD6AA)
-private val Coral = Color(0xFFFF806C)
-private val Lavender = Color(0xFFC5A8F2)
-private val SoftWhite = Color(0xFF171A18)
 
 @Composable
 fun App() {
@@ -192,7 +165,7 @@ fun App() {
             )
             showReflection -> SessionReflectionScreen(
                 completedBlock = mission!!.blocks.getOrNull(activeBlockIndex)
-                    ?: MissionBlock("Sesión de foco", uiState.selectedMinutes),
+                    ?: MissionBlock("Focus session", uiState.selectedMinutes),
                 onRated = { feeling ->
                     val next = (activeBlockIndex + 1).takeIf { it <= mission!!.blocks.lastIndex }
                     showReflection = false
@@ -267,10 +240,10 @@ private fun ProtectionSetupScreen(
                 Text("S", color = Sage, fontSize = 34.sp, fontWeight = FontWeight.Black)
             }
             Spacer(Modifier.height(30.dp))
-            Text("Activa tu pausa.", color = Ink, fontSize = 31.sp, fontWeight = FontWeight.Light)
+            Text("Turn on your pause.", color = Ink, fontSize = 31.sp, fontWeight = FontWeight.Light)
             Spacer(Modifier.height(12.dp))
             Text(
-                "Android necesita tu permiso una sola vez para detectar las apps elegidas. Squishflow nunca lee lo que haces dentro.",
+                "Android needs your permission once to detect the apps you picked. Squishflow never reads what you do inside them.",
                 color = Muted,
                 fontSize = 14.sp,
                 lineHeight = 21.sp,
@@ -283,10 +256,10 @@ private fun ProtectionSetupScreen(
                 shape = RoundedCornerShape(29.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Ink, contentColor = Color(0xFF151713)),
             ) {
-                Text("Activar protección en Android", fontWeight = FontWeight.Bold)
+                Text("Enable protection on Android", fontWeight = FontWeight.Bold)
             }
             TextButton(onClick = onSkip) {
-                Text("Ahora no · usar solo el temporizador", color = Muted, fontSize = 12.sp)
+                Text("Not now · timer only", color = Muted, fontSize = 12.sp)
             }
         }
     }
@@ -304,17 +277,18 @@ private fun FocusInterventionScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Spacer(Modifier.height(18.dp))
-            Text("PAUSA CONSCIENTE", color = Sage, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.8.sp)
+            Text("CONSCIOUS PAUSE", color = Sage, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.8.sp)
             Spacer(Modifier.weight(0.45f))
-            Text("¿La abriste por decisión?", color = Ink, fontSize = 29.sp, fontWeight = FontWeight.Light)
+            Text("Did you open it on purpose?", color = Ink, fontSize = 29.sp, fontWeight = FontWeight.Light)
             Spacer(Modifier.height(9.dp))
             Text(
-                "Aprieta a Squishy tres veces antes de continuar.",
+                "Squeeze Squishy three times to continue.",
                 color = Muted, fontSize = 14.sp, textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(18.dp))
-            TimerStage(
-                uiState = TimerUiState(squishyState = SquishyState.TENSE),
+            SquishyStage(
+                state = SquishyState.TENSE,
+                progress = squishes / 3f,
                 accent = Sage,
                 onSquish = { squishes = (squishes + 1).coerceAtMost(3) },
             )
@@ -333,10 +307,10 @@ private fun FocusInterventionScreen(
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Ink, contentColor = Color(0xFF151713)),
-            ) { Text("Volver a lo importante", fontWeight = FontWeight.Bold) }
+            ) { Text("Back to what matters", fontWeight = FontWeight.Bold) }
             TextButton(onClick = onOpenBriefly, enabled = squishes >= 3) {
                 Text(
-                    if (squishes < 3) "Respira y aprieta · ${3 - squishes}" else "Entrar durante 1 minuto",
+                    if (squishes < 3) "Breathe and squeeze · ${3 - squishes}" else "Open it for 1 minute",
                     color = if (squishes >= 3) Muted else Muted.copy(alpha = 0.42f),
                     fontSize = 12.sp,
                 )
@@ -386,7 +360,7 @@ private fun FocusScreen(
 
             if (missionBlock != null) {
                 Text(
-                    "MISIÓN · ${missionBlock.title}",
+                    "MISSION · ${missionBlock.title}",
                     color = Ink.copy(alpha = .48f),
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
@@ -399,10 +373,10 @@ private fun FocusScreen(
 
             Text(
                 text = when {
-                    uiState.lastSessionCompleted -> "Has vuelto. Eso cuenta."
-                    uiState.isSessionActive -> "Solo esto. Solo ahora."
-                    uiState.squishyState == SquishyState.COMPRESSED -> "Sin culpa. Vuelve cuando quieras."
-                    else -> "Toca. Respira. Empieza."
+                    uiState.lastSessionCompleted -> "You came back. That counts."
+                    uiState.isSessionActive -> "Just this. Just now."
+                    uiState.squishyState == SquishyState.COMPRESSED -> "No guilt. Come back whenever."
+                    else -> "Tap. Breathe. Begin."
                 },
                 color = Muted,
                 fontSize = 15.sp,
@@ -411,8 +385,9 @@ private fun FocusScreen(
 
             Spacer(Modifier.height(18.dp))
 
-            TimerStage(
-                uiState = uiState,
+            SquishyStage(
+                state = uiState.squishyState,
+                progress = uiState.progress,
                 accent = accent,
                 onSquish = {
                     if (!uiState.isSessionActive) {
@@ -434,9 +409,9 @@ private fun FocusScreen(
 
             Text(
                 text = when (uiState.squishyState) {
-                    SquishyState.TENSE -> "LISTO"
-                    SquishyState.RELAXING -> "EN FOCO"
-                    SquishyState.COMPRESSED -> "INTERRUMPIDO"
+                    SquishyState.TENSE -> "READY"
+                    SquishyState.RELAXING -> "IN FOCUS"
+                    SquishyState.COMPRESSED -> "INTERRUPTED"
                 },
                 color = accent,
                 fontSize = 11.sp,
@@ -456,7 +431,7 @@ private fun FocusScreen(
                 if (uiState.boostsUsed == 0) {
                     TextButton(onClick = onRescue) {
                         Text(
-                            "Necesito un impulso  ->",
+                            "I need a boost  ->",
                             color = Ink,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
@@ -464,7 +439,7 @@ private fun FocusScreen(
                     }
                 } else {
                     Text(
-                        "Impulso usado · protege el tiempo que queda",
+                        "Boost used · protect the time that is left",
                         color = Muted,
                         fontSize = 12.sp,
                     )
@@ -481,9 +456,9 @@ private fun FocusScreen(
 
             Text(
                 if (tensionReleased < 3 && !uiState.isSessionActive)
-                    "Aprieta o estira a Squishy · ${3 - tensionReleased} gestos para relajarlo"
+                    "Squeeze or stretch Squishy · ${3 - tensionReleased} to go"
                 else
-                    "Squishy esta listo para proteger tu atencion",
+                    "Squishy is ready to protect your attention",
                 color = Muted.copy(alpha = 0.75f),
                 fontSize = 12.sp,
                 textAlign = TextAlign.Center,
@@ -562,153 +537,13 @@ private fun Header(
     }
 }
 @Composable
-private fun TimerStage(
-    uiState: TimerUiState,
-    accent: Color,
-    onSquish: () -> Unit,
-) {
-    val x = remember { Animatable(0f) }
-    val y = remember { Animatable(0f) }
-    val burst = remember { Animatable(1f) }
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val pressDepth by animateFloatAsState(
-        targetValue = if (isPressed) 0.76f else 1f,
-        animationSpec = spring(
-            dampingRatio = if (isPressed) 0.82f else 0.46f,
-            stiffness = if (isPressed) 520f else 115f,
-        ),
-    )
-    val pressSpread by animateFloatAsState(
-        targetValue = if (isPressed) 1.16f else 1f,
-        animationSpec = spring(dampingRatio = 0.48f, stiffness = 130f),
-    )
-    val scope = rememberCoroutineScope()
-    val stateScale by animateFloatAsState(
-        targetValue = if (uiState.squishyState == SquishyState.COMPRESSED) 0.9f else 1f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
-    )
-
-    Box(
-        modifier = Modifier.size(292.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Canvas(Modifier.fillMaxSize()) {
-            drawCircle(
-                color = Ink.copy(alpha = 0.055f),
-                style = Stroke(width = 7.dp.toPx()),
-            )
-            drawArc(
-                color = accent,
-                startAngle = -90f,
-                sweepAngle = 360f * uiState.progress,
-                useCenter = false,
-                style = Stroke(width = 7.dp.toPx(), cap = StrokeCap.Round),
-            )
-
-            val p = burst.value
-            if (p < 1f) {
-                val directions = listOf(
-                    -1.0f to -0.25f, -0.72f to -0.72f, -0.2f to -1f,
-                    0.35f to -0.92f, 0.82f to -0.55f, 1f to 0.08f,
-                    0.72f to 0.72f, 0.12f to 1f, -0.55f to 0.82f,
-                    -0.92f to 0.45f,
-                )
-                directions.forEachIndexed { index, direction ->
-                    val distance = (78f + index * 4f) * p * density
-                    drawCircle(
-                        color = (if (index % 3 == 0) Coral else accent).copy(alpha = (1f - p) * 0.9f),
-                        radius = (3.5f + (index % 3) * 1.4f) * density * (1f - p * 0.35f),
-                        center = center + androidx.compose.ui.geometry.Offset(direction.first * distance, direction.second * distance),
-                    )
-                }
-            }
-        }
-
-        Box(
-            modifier = Modifier
-                .size(250.dp)
-                .semantics {
-                    role = Role.Button
-                    contentDescription = "Squishy, compañero de concentración interactivo"
-                    stateDescription = when (uiState.squishyState) {
-                        SquishyState.TENSE -> "Tenso, preparado para empezar"
-                        SquishyState.RELAXING -> "Relajándose durante la sesión"
-                        SquishyState.COMPRESSED -> "Comprimido después de una interrupción"
-                    }
-                }
-                .clickable(
-                    interactionSource = interactionSource,
-                    indication = null,
-                ) {
-                    onSquish()
-                    scope.launch {
-                        burst.snapTo(0f)
-                        burst.animateTo(1f, androidx.compose.animation.core.tween(720))
-                    }
-                }
-                .pointerInput(Unit) {
-                    detectDragGestures(
-                        onDragStart = {
-                            scope.launch {
-                                burst.snapTo(0f)
-                                burst.animateTo(1f, androidx.compose.animation.core.tween(720))
-                            }
-                        },
-                        onDragEnd = {
-                            onSquish()
-                            scope.launch {
-                                launch { x.animateTo(0f, spring(dampingRatio = Spring.DampingRatioMediumBouncy)) }
-                                launch { y.animateTo(0f, spring(dampingRatio = Spring.DampingRatioMediumBouncy)) }
-                            }
-                        },
-                        onDragCancel = {
-                            scope.launch {
-                                launch { x.animateTo(0f) }
-                                launch { y.animateTo(0f) }
-                            }
-                        },
-                    ) { change, dragAmount ->
-                        change.consume()
-                        scope.launch {
-                            x.snapTo((x.value + dragAmount.x).coerceIn(-110f, 110f))
-                            y.snapTo((y.value + dragAmount.y).coerceIn(-90f, 90f))
-                        }
-                    }
-                }
-                .graphicsLayer {
-                    translationX = x.value
-                    translationY = y.value
-                    rotationZ = x.value / 16f
-                    scaleX = stateScale * pressSpread * (1f + abs(y.value) / 520f)
-                    scaleY = stateScale * pressDepth * (1f - abs(y.value) / 620f)
-                },
-            contentAlignment = Alignment.Center,
-        ) {
-            SquishyBody(
-                state = uiState.squishyState,
-                deformationX = x.value,
-                deformationY = y.value,
-                modifier = Modifier.fillMaxSize(),
-            )
-            SquishyFace(
-                state = uiState.squishyState,
-                lookX = x.value,
-                lookY = y.value,
-                modifier = Modifier.fillMaxSize(),
-            )
-        }
-    }
-}
-
-@Composable
 private fun ReleaseMeter(released: Int) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(7.dp),
     ) {
         Text(
-            if (released >= 3) "TENSION LIBERADA" else "LIBERA TENSION",
+            if (released >= 3) "TENSION RELEASED" else "RELEASE TENSION",
             color = if (released >= 3) Sage else Muted,
             fontSize = 10.sp,
             fontWeight = FontWeight.Bold,
@@ -725,200 +560,6 @@ private fun ReleaseMeter(released: Int) {
     }
 }
 
-@Composable
-private fun SquishyBody(
-    state: SquishyState,
-    deformationX: Float,
-    deformationY: Float,
-    modifier: Modifier = Modifier,
-) {
-    val motion = androidx.compose.animation.core.rememberInfiniteTransition(label = "squishy-breath")
-    val breath by motion.animateFloat(
-        initialValue = 0.985f,
-        targetValue = 1.018f,
-        animationSpec = androidx.compose.animation.core.infiniteRepeatable(
-            animation = androidx.compose.animation.core.tween(
-                durationMillis = if (state == SquishyState.RELAXING) 1900 else 2800,
-                easing = androidx.compose.animation.core.FastOutSlowInEasing,
-            ),
-            repeatMode = androidx.compose.animation.core.RepeatMode.Reverse,
-        ),
-        label = "breath",
-    )
-    val base = when (state) {
-        SquishyState.TENSE -> Color(0xFFFF806C)
-        SquishyState.RELAXING -> Color(0xFF8DD6AA)
-        SquishyState.COMPRESSED -> Color(0xFFC5A8F2)
-    }
-    val deep = when (state) {
-        SquishyState.TENSE -> Color(0xFFB9473B)
-        SquishyState.RELAXING -> Color(0xFF3E8960)
-        SquishyState.COMPRESSED -> Color(0xFF77569F)
-    }
-
-    Canvas(
-        modifier.graphicsLayer {
-            scaleX = breath
-            scaleY = breath
-        },
-    ) {
-        val w = size.width
-        val h = size.height
-        val dx = (deformationX / 110f).coerceIn(-1f, 1f)
-        val dy = (deformationY / 90f).coerceIn(-1f, 1f)
-        val compressed = if (state == SquishyState.COMPRESSED) 0.08f else 0f
-        val top = h * (0.095f + compressed + kotlin.math.abs(dy) * 0.025f)
-        val bottom = h * (0.89f - compressed * 0.2f)
-        val centerShift = dx * w * 0.035f
-
-        drawOval(
-            color = Color.Black.copy(alpha = 0.32f),
-            topLeft = androidx.compose.ui.geometry.Offset(w * 0.19f, h * 0.83f),
-            size = androidx.compose.ui.geometry.Size(w * 0.62f, h * 0.10f),
-        )
-
-        val blob = androidx.compose.ui.graphics.Path().apply {
-            moveTo(w * 0.50f + centerShift, top)
-            cubicTo(
-                w * 0.72f + centerShift, h * (0.07f + compressed),
-                w * (0.91f + dx * 0.025f), h * 0.24f,
-                w * (0.89f + dx * 0.035f), h * 0.46f,
-            )
-            cubicTo(
-                w * (0.96f + dx * 0.025f), h * 0.65f,
-                w * 0.78f, bottom,
-                w * 0.56f, bottom,
-            )
-            cubicTo(
-                w * 0.48f, h * 0.94f,
-                w * 0.37f, h * 0.91f,
-                w * 0.31f, bottom * 0.98f,
-            )
-            cubicTo(
-                w * 0.10f, h * 0.82f,
-                w * (0.04f + dx * 0.025f), h * 0.61f,
-                w * (0.11f + dx * 0.035f), h * 0.43f,
-            )
-            cubicTo(
-                w * (0.09f + dx * 0.025f), h * 0.22f,
-                w * 0.28f + centerShift, h * (0.07f + compressed),
-                w * 0.50f + centerShift, top,
-            )
-            close()
-        }
-
-        drawPath(
-            path = blob,
-            brush = androidx.compose.ui.graphics.Brush.radialGradient(
-                colors = listOf(
-                    Color.White.copy(alpha = 0.52f),
-                    base,
-                    deep,
-                ),
-                center = androidx.compose.ui.geometry.Offset(w * (0.34f + dx * 0.02f), h * 0.25f),
-                radius = w * 0.78f,
-            ),
-        )
-        drawPath(
-            path = blob,
-            color = Color.White.copy(alpha = 0.10f),
-            style = Stroke(width = 1.5.dp.toPx()),
-        )
-
-        clipPath(blob) {
-            drawOval(
-                brush = androidx.compose.ui.graphics.Brush.verticalGradient(
-                    listOf(Color.Transparent, Color.White.copy(alpha = 0.12f), Color.Transparent),
-                ),
-                topLeft = androidx.compose.ui.geometry.Offset(w * 0.10f, h * 0.62f),
-                size = androidx.compose.ui.geometry.Size(w * 0.82f, h * 0.25f),
-            )
-            listOf(
-                0.29f to 0.70f, 0.68f to 0.26f, 0.73f to 0.58f, 0.39f to 0.28f,
-            ).forEachIndexed { index, point ->
-                drawCircle(
-                    color = Color.White.copy(alpha = 0.055f + index * 0.012f),
-                    radius = (5f + index * 1.7f) * density,
-                    center = androidx.compose.ui.geometry.Offset(w * point.first, h * point.second),
-                )
-            }
-        }
-
-        drawOval(
-            brush = androidx.compose.ui.graphics.Brush.linearGradient(
-                listOf(Color.White.copy(alpha = 0.30f), Color.Transparent),
-            ),
-            topLeft = androidx.compose.ui.geometry.Offset(w * 0.24f, h * (0.16f + compressed)),
-            size = androidx.compose.ui.geometry.Size(w * 0.27f, h * 0.12f),
-        )
-        drawCircle(
-            color = Color.White.copy(alpha = 0.13f),
-            radius = w * 0.045f,
-            center = androidx.compose.ui.geometry.Offset(w * 0.76f, h * 0.68f),
-        )
-    }
-}
-@Composable
-private fun SquishyFace(
-    state: SquishyState,
-    lookX: Float,
-    lookY: Float,
-    modifier: Modifier = Modifier,
-) {
-    Canvas(modifier) {
-        val faceInk = Color(0xFF151713)
-        val shift = (lookX / 16f).coerceIn(-7f, 7f)
-        val verticalShift = (lookY / 20f).coerceIn(-4f, 4f)
-        val eyeY = size.height * if (state == SquishyState.COMPRESSED) 0.47f else 0.43f
-        val eyeGap = size.width * 0.105f
-        val radius = if (state == SquishyState.COMPRESSED) 5.dp.toPx() else 7.5.dp.toPx()
-        val left = androidx.compose.ui.geometry.Offset(size.width / 2f - eyeGap + shift, eyeY + verticalShift)
-        val right = androidx.compose.ui.geometry.Offset(size.width / 2f + eyeGap + shift, eyeY + verticalShift)
-
-        if (state == SquishyState.COMPRESSED) {
-            drawLine(
-                faceInk,
-                start = left + androidx.compose.ui.geometry.Offset(-7.dp.toPx(), -4.dp.toPx()),
-                end = left + androidx.compose.ui.geometry.Offset(7.dp.toPx(), 4.dp.toPx()),
-                strokeWidth = 4.dp.toPx(),
-                cap = StrokeCap.Round,
-            )
-            drawLine(
-                faceInk,
-                start = right + androidx.compose.ui.geometry.Offset(-7.dp.toPx(), 4.dp.toPx()),
-                end = right + androidx.compose.ui.geometry.Offset(7.dp.toPx(), -4.dp.toPx()),
-                strokeWidth = 4.dp.toPx(),
-                cap = StrokeCap.Round,
-            )
-        } else {
-            drawCircle(faceInk, radius, center = left)
-            drawCircle(faceInk, radius, center = right)
-            drawCircle(Color.White.copy(alpha = 0.9f), radius * 0.28f, center = left + androidx.compose.ui.geometry.Offset(-radius * 0.25f, -radius * 0.28f))
-            drawCircle(Color.White.copy(alpha = 0.9f), radius * 0.28f, center = right + androidx.compose.ui.geometry.Offset(-radius * 0.25f, -radius * 0.28f))
-        }
-
-        drawCircle(
-            Color(0xFFFF8B86).copy(alpha = if (state == SquishyState.RELAXING) 0.42f else 0.25f),
-            radius = 10.dp.toPx(),
-            center = androidx.compose.ui.geometry.Offset(size.width * 0.35f, size.height * 0.52f),
-        )
-        drawCircle(
-            Color(0xFFFF8B86).copy(alpha = if (state == SquishyState.RELAXING) 0.42f else 0.25f),
-            radius = 10.dp.toPx(),
-            center = androidx.compose.ui.geometry.Offset(size.width * 0.65f, size.height * 0.52f),
-        )
-
-        drawArc(
-            color = faceInk,
-            startAngle = if (state == SquishyState.COMPRESSED) 205f else 20f,
-            sweepAngle = if (state == SquishyState.RELAXING) 140f else 130f,
-            useCenter = false,
-            topLeft = androidx.compose.ui.geometry.Offset(size.width * 0.43f, size.height * 0.49f),
-            size = androidx.compose.ui.geometry.Size(size.width * 0.14f, size.height * 0.09f),
-            style = Stroke(width = 3.5.dp.toPx(), cap = StrokeCap.Round),
-        )
-    }
-}
 private data class RescueAction(
     val title: String,
     val instruction: String,
@@ -933,10 +574,10 @@ private fun RescueModeScreen(
 ) {
     val actions = remember {
         listOf(
-            RescueAction("1 burpee", "Verificado con la camara.", 5 * 60, 0),
-            RescueAction("20 jumping jacks", "Mueve todo el cuerpo y cambia tu estado.", 5 * 60, 15),
-            RescueAction("Respiracion consciente", "Inhala 4 segundos. Exhala 6. Repite.", 3 * 60, 30),
-            RescueAction("10 squishes", "Descarga la inquietud directamente en Squishy.", 60, 8),
+            RescueAction("1 burpee", "Verified by camera.", 5 * 60, 0),
+            RescueAction("20 jumping jacks", "Move your whole body and change your state.", 5 * 60, 15),
+            RescueAction("Guided breathing", "Breathe in for 4. Out for 6. Repeat.", 3 * 60, 30),
+            RescueAction("10 squishes", "Put the restlessness straight into Squishy.", 60, 8),
         )
     }
     var selected by remember { mutableStateOf<RescueAction?>(null) }
@@ -975,7 +616,7 @@ private fun RescueModeScreen(
                         selected = null
                         cameraConsent = false
                     }
-                }) { Text(if (selected == null) "Cerrar" else "Atras", color = Muted) }
+                }) { Text(if (selected == null) "Close" else "Back", color = Muted) }
                 Text("RESCUE MODE", color = Coral, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.8.sp)
                 Spacer(Modifier.width(64.dp))
             }
@@ -983,10 +624,10 @@ private fun RescueModeScreen(
             Spacer(Modifier.weight(0.55f))
 
             if (selected == null) {
-                Text("Cambia tu estado.", color = Ink, fontSize = 34.sp, fontWeight = FontWeight.Light)
+                Text("Change your state.", color = Ink, fontSize = 34.sp, fontWeight = FontWeight.Light)
                 Spacer(Modifier.height(10.dp))
                 Text(
-                    "Una accion real puede comprarte tiempo de foco.\nElige solo una.",
+                    "One real action buys back focus time.\nPick just one.",
                     color = Muted,
                     fontSize = 14.sp,
                     textAlign = TextAlign.Center,
@@ -1004,7 +645,7 @@ private fun RescueModeScreen(
                         Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.Start) {
                             Text(action.title, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                             Text(
-                                if (action.rewardSeconds == 60) "-1 minuto" else "-${action.rewardSeconds / 60} minutos",
+                                if (action.rewardSeconds == 60) "-1 minute" else "-${action.rewardSeconds / 60} minutes",
                                 color = Muted,
                                 fontSize = 11.sp,
                             )
@@ -1015,10 +656,10 @@ private fun RescueModeScreen(
             } else {
                 val action = selected!!
                 if (action.title == "1 burpee") {
-                    Text("Verificacion por camara", color = Ink, fontSize = 30.sp, fontWeight = FontWeight.Light)
+                    Text("Camera verification", color = Ink, fontSize = 30.sp, fontWeight = FontWeight.Light)
                     Spacer(Modifier.height(14.dp))
                     Text(
-                        "Analizaremos tu postura en directo para reconocer un burpee completo: de pie, suelo y de pie.",
+                        "We read your pose live to recognise a full burpee: standing, floor, standing.",
                         color = Muted,
                         fontSize = 14.sp,
                         textAlign = TextAlign.Center,
@@ -1027,10 +668,10 @@ private fun RescueModeScreen(
                     Spacer(Modifier.height(28.dp))
                     Surface(color = Sage.copy(alpha = 0.12f), shape = RoundedCornerShape(22.dp)) {
                         Column(Modifier.fillMaxWidth().padding(20.dp)) {
-                            Text("PRIVACIDAD", color = Sage, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.4.sp)
+                            Text("PRIVACY", color = Sage, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.4.sp)
                             Spacer(Modifier.height(8.dp))
                             Text(
-                                "El analisis ocurre en este dispositivo. No grabamos, guardamos ni enviamos imagenes.",
+                                "Everything is analysed on this device. No image is recorded, stored or sent.",
                                 color = Ink,
                                 fontSize = 13.sp,
                                 lineHeight = 19.sp,
@@ -1043,10 +684,10 @@ private fun RescueModeScreen(
                         modifier = Modifier.fillMaxWidth().height(58.dp),
                         shape = RoundedCornerShape(29.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Ink),
-                    ) { Text("Entiendo - activar camara", fontWeight = FontWeight.Bold) }
+                    ) { Text("Got it — turn on camera", fontWeight = FontWeight.Bold) }
                 } else {
                     Text(
-                        if (countdown > 0) countdown.toString() else "LISTO",
+                        if (countdown > 0) countdown.toString() else "READY",
                         color = if (countdown > 0) Ink else Sage,
                         fontSize = if (countdown > 0) 88.sp else 42.sp,
                         fontWeight = FontWeight.Light,
@@ -1063,14 +704,14 @@ private fun RescueModeScreen(
                         shape = RoundedCornerShape(29.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Ink),
                     ) {
-                        Text(if (countdown > 0) "Hazlo ahora" else "Hecho - descontar tiempo", fontWeight = FontWeight.Bold)
+                        Text(if (countdown > 0) "Do it now" else "Done — claim the time", fontWeight = FontWeight.Bold)
                     }
                 }
             }
 
             Spacer(Modifier.weight(1f))
             Text(
-                "Un rescate por sesion. Sin culpa, sin atajos infinitos.",
+                "One rescue per session. No guilt, and no infinite escape hatch.",
                 color = Muted.copy(alpha = 0.65f),
                 fontSize = 11.sp,
                 textAlign = TextAlign.Center,
@@ -1094,7 +735,7 @@ private fun PremiumIntroScreen(
         ) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 TextButton(onClick = onDismiss) {
-                    Text("Cerrar", color = Color.White.copy(alpha = 0.72f))
+                    Text("Close", color = Color.White.copy(alpha = 0.72f))
                 }
             }
             Spacer(Modifier.weight(0.4f))
@@ -1109,22 +750,22 @@ private fun PremiumIntroScreen(
             }
             Spacer(Modifier.height(28.dp))
             Text(
-                "Tu foco no necesita fuerza.",
+                "Focus should not take force.",
                 color = Color.White,
                 fontSize = 34.sp,
                 fontWeight = FontWeight.Light,
             )
             Spacer(Modifier.height(12.dp))
             Text(
-                "Un reset sensorial para volver antes de perderte.",
+                "A sensory reset, so you return before you drift.",
                 color = Color.White.copy(alpha = 0.62f),
                 fontSize = 15.sp,
                 textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(38.dp))
-            PremiumBenefit("01", "Rescates inteligentes", "Convierte movimiento y respiracion en tiempo recuperado.")
-            PremiumBenefit("02", "Squishies coleccionables", "Nuevos materiales, colores y personalidades.")
-            PremiumBenefit("03", "Tu mapa de atencion", "Descubre que duracion y rescate funcionan para ti.")
+            PremiumBenefit("01", "Smarter rescues", "Turn movement and breath into time you get back.")
+            PremiumBenefit("02", "Collectable squishies", "New materials, colours and personalities.")
+            PremiumBenefit("03", "Your attention map", "Learn which duration and which rescue actually work for you.")
             Spacer(Modifier.weight(1f))
             Button(
                 onClick = onSeePlans,
@@ -1135,11 +776,11 @@ private fun PremiumIntroScreen(
                     contentColor = Color(0xFF151713),
                 ),
             ) {
-                Text("Ver planes Premium", fontWeight = FontWeight.Bold)
+                Text("See Premium plans", fontWeight = FontWeight.Bold)
             }
             Spacer(Modifier.height(10.dp))
             Text(
-                "Cancela cuando quieras",
+                "Cancel anytime",
                 color = Color.White.copy(alpha = 0.45f),
                 fontSize = 11.sp,
             )
@@ -1214,7 +855,7 @@ private fun PrimaryAction(
         elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
     ) {
         Text(
-            if (active) "Terminar sesión" else "Empezar foco",
+            if (active) "End session" else "Start focus",
             fontSize = 15.sp,
             fontWeight = FontWeight.Bold,
         )

@@ -32,9 +32,9 @@ fun JourneyScreen(state: TimerUiState, onBack: () -> Unit, onPremium: () -> Unit
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                TextButton(onClick = onBack) { Text("Volver", color = JourneyMuted) }
+                TextButton(onClick = onBack) { Text("Back", color = JourneyMuted) }
                 Spacer(Modifier.weight(1f))
-                Text("TU VIAJE", color = JourneyInk, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.8.sp)
+                Text("YOUR JOURNEY", color = JourneyInk, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.8.sp)
                 Spacer(Modifier.weight(1f))
                 Spacer(Modifier.width(64.dp))
             }
@@ -44,22 +44,22 @@ fun JourneyScreen(state: TimerUiState, onBack: () -> Unit, onPremium: () -> Unit
                 contentAlignment = Alignment.Center,
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("NIVEL", color = JourneySage, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
+                    Text("LEVEL", color = JourneySage, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
                     Text(state.level.toString(), color = JourneyInk, fontSize = 44.sp, fontWeight = FontWeight.Light)
                 }
             }
             Spacer(Modifier.height(18.dp))
             Text(
                 when (state.level) {
-                    1 -> "Squishy despierta"
-                    2 -> "Squishy encuentra su calma"
-                    else -> "Squishy protege tu atencion"
+                    1 -> "Squishy wakes up"
+                    2 -> "Squishy finds its calm"
+                    else -> "Squishy protects your attention"
                 },
                 color = JourneyInk, fontSize = 24.sp, fontWeight = FontWeight.Light,
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                "${3 - (state.completedSessions % 3)} sesiones para la siguiente evolucion",
+                "${3 - (state.completedSessions % 3)} sessions to the next evolution",
                 color = JourneyMuted, fontSize = 13.sp,
             )
             Spacer(Modifier.height(12.dp))
@@ -71,9 +71,9 @@ fun JourneyScreen(state: TimerUiState, onBack: () -> Unit, onPremium: () -> Unit
             )
             Spacer(Modifier.height(30.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                JourneyMetric("${state.focusedSeconds / 60}", "MINUTOS\nEN FOCO", Modifier.weight(1f))
-                JourneyMetric("${state.completedSessions}", "SESIONES\nCOMPLETAS", Modifier.weight(1f))
-                JourneyMetric("$consistency%", "CONSTANCIA", Modifier.weight(1f))
+                JourneyMetric("${state.focusedSeconds / 60}", "MINUTES\nIN FOCUS", Modifier.weight(1f))
+                JourneyMetric("${state.completedSessions}", "SESSIONS\nCOMPLETED", Modifier.weight(1f))
+                JourneyMetric("$consistency%", "CONSISTENCY", Modifier.weight(1f))
             }
             Spacer(Modifier.height(12.dp))
             Surface(color = JourneyWhite, shape = RoundedCornerShape(24.dp), modifier = Modifier.fillMaxWidth()) {
@@ -83,14 +83,14 @@ fun JourneyScreen(state: TimerUiState, onBack: () -> Unit, onPremium: () -> Unit
                     }
                     Spacer(Modifier.width(14.dp))
                     Column(Modifier.weight(1f)) {
-                        Text("Tiempo recuperado", color = JourneyInk, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                        Text("Has transformado movimiento en ${state.rescuedSeconds / 60} minutos de foco.", color = JourneyMuted, fontSize = 12.sp)
+                        Text("Time recovered", color = JourneyInk, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                        Text("You turned movement into ${state.rescuedSeconds / 60} minutes of focus.", color = JourneyMuted, fontSize = 12.sp)
                     }
                 }
             }
             Spacer(Modifier.weight(1f))
             Text(
-                "No persigas una racha perfecta.\nVuelve cada vez que te distraigas.",
+                "Do not chase a perfect streak.\nJust come back each time you drift.",
                 color = JourneyMuted, fontSize = 13.sp, textAlign = TextAlign.Center, lineHeight = 19.sp,
             )
             Spacer(Modifier.height(18.dp))
@@ -100,7 +100,7 @@ fun JourneyScreen(state: TimerUiState, onBack: () -> Unit, onPremium: () -> Unit
                 shape = RoundedCornerShape(28.dp),
                 border = androidx.compose.foundation.BorderStroke(1.dp, JourneyInk.copy(alpha = 0.15f)),
             ) {
-                Text("Desbloquear patrones con Premium", color = JourneyInk, fontWeight = FontWeight.Bold)
+                Text("Unlock patterns with Premium", color = JourneyInk, fontWeight = FontWeight.Bold)
             }
         }
     }

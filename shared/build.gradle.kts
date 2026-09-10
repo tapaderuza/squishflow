@@ -5,12 +5,20 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+// Apple targets can only be compiled on a Mac, and Gradle otherwise fails the whole
+// build on Windows while trying to run the Kotlin/Native compiler. Declaring them
+// conditionally keeps `gradlew build` green on both machines; the iOS sources are
+// still compiled on every macOS build and in CI.
+val isMacOs: Boolean = System.getProperty("os.name").orEmpty().startsWith("Mac", ignoreCase = true)
+
 kotlin {
     androidTarget()
-    listOf(iosArm64(), iosSimulatorArm64()).forEach { target ->
-        target.binaries.framework {
-            baseName = "shared"
-            isStatic = true
+    if (isMacOs) {
+        listOf(iosArm64(), iosSimulatorArm64()).forEach { target ->
+            target.binaries.framework {
+                baseName = "shared"
+                isStatic = true
+            }
         }
     }
 

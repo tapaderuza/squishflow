@@ -33,10 +33,10 @@ fun MissionPlannerScreen(
         ) {
             Text("SQUISHFLOW · AI FOCUS COACH", color = ink, fontSize = 12.sp, fontWeight = FontWeight.Black, letterSpacing = 1.6.sp)
             Spacer(Modifier.weight(.7f))
-            Text("¿Qué quieres\nterminar hoy?", color = ink, fontSize = 38.sp, lineHeight = 43.sp, fontWeight = FontWeight.Light)
+            Text("What do you want\nto finish today?", color = ink, fontSize = 38.sp, lineHeight = 43.sp, fontWeight = FontWeight.Light)
             Spacer(Modifier.height(14.dp))
             Text(
-                "Cuéntaselo a Squishy. Lo convertirá en bloques que puedas completar.",
+                "Tell Squishy. It becomes blocks you can actually finish.",
                 color = ink.copy(alpha = .58f), fontSize = 15.sp, lineHeight = 22.sp,
             )
             Spacer(Modifier.height(28.dp))
@@ -44,7 +44,7 @@ fun MissionPlannerScreen(
                 value = goal,
                 onValueChange = { goal = it.take(500); error = null },
                 modifier = Modifier.fillMaxWidth().heightIn(min = 150.dp),
-                placeholder = { Text("Ej. Terminar la presentación del cliente y estudiar dos horas") },
+                placeholder = { Text("e.g. Finish the client deck and study for two hours") },
                 enabled = !planning,
                 shape = RoundedCornerShape(22.dp),
                 supportingText = { Text("${goal.length}/500") },
@@ -57,7 +57,7 @@ fun MissionPlannerScreen(
                     scope.launch {
                         runCatching { planner.plan(goal) }
                             .onSuccess(onMissionReady)
-                            .onFailure { error = "Escribe un objetivo un poco más concreto." }
+                            .onFailure { error = "Try a slightly more concrete goal." }
                         planning = false
                     }
                 },
@@ -67,10 +67,10 @@ fun MissionPlannerScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = ink, contentColor = sage),
             ) {
                 if (planning) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = sage)
-                else Text("Crear mi misión", fontWeight = FontWeight.Bold)
+                else Text("Create my mission", fontWeight = FontWeight.Bold)
             }
             Text(
-                "Tu plan se crea en el dispositivo en este MVP.",
+                "Your plan is built on this device.",
                 modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
                 color = ink.copy(alpha = .42f), fontSize = 11.sp,
             )
@@ -90,9 +90,9 @@ fun MissionReviewScreen(
     val sage = Color(0xFF8DD6AA)
     Surface(Modifier.fillMaxSize(), color = paper) {
         Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(26.dp)) {
-            TextButton(onClick = onBack, contentPadding = PaddingValues(0.dp)) { Text("← Cambiar objetivo") }
+            TextButton(onClick = onBack, contentPadding = PaddingValues(0.dp)) { Text("← Change goal") }
             Spacer(Modifier.height(24.dp))
-            Text("MISIÓN", color = sage, fontSize = 11.sp, fontWeight = FontWeight.Black, letterSpacing = 2.sp)
+            Text("MISSION", color = sage, fontSize = 11.sp, fontWeight = FontWeight.Black, letterSpacing = 2.sp)
             Text(mission.title, color = ink, fontSize = 32.sp, lineHeight = 37.sp, fontWeight = FontWeight.Light)
             Spacer(Modifier.height(26.dp))
             mission.blocks.forEachIndexed { index, block ->
@@ -116,7 +116,7 @@ fun MissionReviewScreen(
                 modifier = Modifier.fillMaxWidth().height(58.dp),
                 shape = RoundedCornerShape(29.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = ink, contentColor = sage),
-            ) { Text("Empezar el primer bloque", fontWeight = FontWeight.Bold) }
+            ) { Text("Start the first block", fontWeight = FontWeight.Bold) }
         }
     }
 }
@@ -137,18 +137,18 @@ fun MissionBreakScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Spacer(Modifier.weight(1f))
-            Text("PAUSA", color = sage, fontSize = 11.sp, fontWeight = FontWeight.Black, letterSpacing = 2.sp)
+            Text("BREAK", color = sage, fontSize = 11.sp, fontWeight = FontWeight.Black, letterSpacing = 2.sp)
             Text(block.title, color = ink, fontSize = 31.sp, fontWeight = FontWeight.Light)
             Spacer(Modifier.height(12.dp))
-            Text("${block.minutes} minutos · sin pantalla si puedes", color = ink.copy(alpha = .5f), fontSize = 14.sp)
+            Text("${block.minutes} minutes · screen-free if you can", color = ink.copy(alpha = .5f), fontSize = 14.sp)
             Spacer(Modifier.weight(1f))
             Button(
                 onClick = onContinue,
                 modifier = Modifier.fillMaxWidth().height(58.dp),
                 shape = RoundedCornerShape(29.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = ink, contentColor = sage),
-            ) { Text(if (nextBlock == null) "Completar misión" else "Continuar · ${nextBlock.title}", fontWeight = FontWeight.Bold) }
-            TextButton(onClick = onFinish) { Text("Terminar por hoy", color = ink.copy(alpha = .5f)) }
+            ) { Text(if (nextBlock == null) "Complete mission" else "Continue · ${nextBlock.title}", fontWeight = FontWeight.Bold) }
+            TextButton(onClick = onFinish) { Text("Finish for today", color = ink.copy(alpha = .5f)) }
         }
     }
 }
@@ -170,16 +170,16 @@ fun SessionReflectionScreen(
             Spacer(Modifier.weight(.7f))
             Box(Modifier.size(104.dp).background(sage.copy(alpha = .18f), RoundedCornerShape(38.dp)))
             Spacer(Modifier.height(28.dp))
-            Text("Bloque completado", color = sage, fontSize = 11.sp, fontWeight = FontWeight.Black, letterSpacing = 1.8.sp)
+            Text("Block complete", color = sage, fontSize = 11.sp, fontWeight = FontWeight.Black, letterSpacing = 1.8.sp)
             Text(completedBlock.title, color = ink, fontSize = 28.sp, fontWeight = FontWeight.Light)
             Spacer(Modifier.height(12.dp))
-            Text("¿Cómo se sintió?", color = ink.copy(alpha = .55f), fontSize = 15.sp)
+            Text("How did that feel?", color = ink.copy(alpha = .55f), fontSize = 15.sp)
             Spacer(Modifier.height(26.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                 listOf(
-                    SessionFeeling.EASY to "Fácil",
-                    SessionFeeling.RIGHT to "Justo",
-                    SessionFeeling.TOO_MUCH to "Demasiado",
+                    SessionFeeling.EASY to "Easy",
+                    SessionFeeling.RIGHT to "Right",
+                    SessionFeeling.TOO_MUCH to "Too much",
                 ).forEach { (feeling, label) ->
                     OutlinedButton(
                         onClick = { onRated(feeling) },
@@ -189,7 +189,7 @@ fun SessionReflectionScreen(
                 }
             }
             Spacer(Modifier.weight(1f))
-            TextButton(onClick = onFinish) { Text("Terminar por hoy", color = ink.copy(alpha = .5f)) }
+            TextButton(onClick = onFinish) { Text("Finish for today", color = ink.copy(alpha = .5f)) }
         }
     }
 }
