@@ -37,6 +37,34 @@ The renderer passes a Catmull-Rom curve exactly through the simulated samples, s
 
 Haptics are treated as part of the same object rather than as decoration: Android drives the vibrator directly for per-accent amplitude, iOS uses the Taptic Engine and keeps its generators armed between hits.
 
+## What Pro actually buys
+
+Five bodies, and they are not reskins. Each material retunes the solver:
+
+| Material | Character | Free |
+| --- | --- | :---: |
+| Jelly | Balanced and translucent | ✅ |
+| Stress ball | Dense foam, snaps straight back | — |
+| Water balloon | Thin skin, keeps sloshing | — |
+| Mochi | Soft, slow to let a shape go | — |
+| Bubble | Weightless, the whole surface rings | — |
+
+A unit test asserts the difference is real: dense foam must settle in fewer
+frames than jelly, and a water balloon in more. If two materials ever came to
+rest at the same rate, the entitlement would be selling paint.
+
+Because only one body is free, tapping a locked chip hands you that material for
+six seconds before the paywall appears. A list of names cannot communicate what
+dense foam feels like.
+
+## Accessibility
+
+The companion is built out of motion, so the system reduced-motion setting is
+honoured rather than ignored: the body still deforms under a finger, because that
+is the interaction and not decoration, but it stops breathing, ringing and pulsing
+on its own. Every material chip carries a full TalkBack description including
+whether it is locked, and the body announces its session state.
+
 ## Honesty about the planner
 
 The current planner is **deterministic and on-device**. It does not learn, and there is no model behind it. The interface says "adaptive focus", never "AI", and the app tells you the plan was built on your device.
@@ -61,6 +89,7 @@ Before any store submission: replace the RevenueCat test key with the platform k
 | --- | --- |
 | `shared/src/commonMain/.../SquishyPhysics.kt` | The soft-body model. Pure Kotlin, no UI. |
 | `shared/src/commonMain/.../SquishyCanvas.kt` | Gestures, the frame loop and the renderer. |
+| `shared/src/commonMain/.../SquishyMaterial.kt` | The five bodies and their solver constants. |
 | `shared/src/commonMain/.../MissionPlanner.kt` | Goal decomposition. |
 | `shared/src/commonMain/.../App.kt` | Screens and navigation. |
 | `shared/src/commonMain/.../Theme.kt` | Palette and state colours. |

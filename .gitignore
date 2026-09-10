@@ -43,3 +43,6 @@ Thumbs.db
 
 # Local build transcripts
 build_check.log
+
+# Raw screen captures: regenerate from the emulator rather than version them
+evidence/video/
