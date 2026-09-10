@@ -41,6 +41,22 @@ The renderer passes a Catmull-Rom curve exactly through the simulated samples, s
 
 Haptics are treated as part of the same object rather than as decoration: Android drives the vibrator directly for per-accent amplitude, iOS uses the Taptic Engine and keeps its generators armed between hits.
 
+### The voice is synthesised too
+
+No audio files ship with the app. `SquishSynth` builds each squish from noise
+through a resonant state-variable filter — cutoff sweeping *down* for compression
+and *up* for the rebound — over a low sine that gives the body its mass. Loudness
+on release follows how deeply the finger was actually pressing.
+
+Generating rather than sampling means the sound cannot drift from the shape, and a
+new material gets a voice by changing constants instead of commissioning a
+recording. It is deterministic, so Android and iOS produce an identical waveform.
+
+Tests cannot tell you whether a synth sounds *good*, so they assert the things
+that go wrong silently: clipping, DC offset, filter runaway, clicks at the buffer
+edges. For the part only ears can judge, running the unit tests writes auditionable
+WAVs to `shared/build/audio-preview/`.
+
 ## Monetisation: focus is the currency
 
 **Every squishy can be earned. Pro buys them now.**

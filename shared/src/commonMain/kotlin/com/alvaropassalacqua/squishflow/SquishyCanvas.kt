@@ -71,6 +71,7 @@ internal fun SquishyStage(
 ) {
     val body = remember { SquishyPhysics(tuning = material.tuning) }
     val haptics = rememberHaptics()
+    val audio = rememberSquishAudio()
     val scope = rememberCoroutineScope()
 
     // Bumping this on every simulated frame is what re-runs the Canvas. Reading a
@@ -165,6 +166,7 @@ internal fun SquishyStage(
                     detectTapGestures(
                         onPress = {
                             haptics.play(HapticAccent.TOUCH)
+                            audio.play(SquishGesture.SQUEEZE, intensity = 0.7f)
                             val centre = Offset(size.width / 2f, size.height / 2f)
                             body.impulse(
                                 angleRadians = touchAngle(it.x - centre.x, it.y - centre.y),
@@ -175,6 +177,7 @@ internal fun SquishyStage(
                         },
                         onTap = {
                             haptics.play(HapticAccent.RELEASE)
+                            audio.play(SquishGesture.RELEASE, intensity = 0.62f)
                             scatter()
                             onSquish()
                         },
@@ -189,6 +192,7 @@ internal fun SquishyStage(
                             fingerAngle = touchAngle(position.x - centre.x, position.y - centre.y)
                             fingerDepth = depthFor(position, centre, reach)
                             haptics.play(HapticAccent.TOUCH)
+                            audio.play(SquishGesture.SQUEEZE)
                             scatter()
                             wake()
                         },
@@ -197,6 +201,10 @@ internal fun SquishyStage(
                             // Releasing a compressed surface snaps it outward.
                             body.impulse(fingerAngle, strength = -4.2f, spread = 1.1f)
                             haptics.play(HapticAccent.RELEASE)
+                            audio.play(
+                                SquishGesture.RELEASE,
+                                intensity = (0.45f + fingerDepth * 1.4f).coerceAtMost(1f),
+                            )
                             scope.launch {
                                 launch { driftX.animateTo(0f, spring(dampingRatio = Spring.DampingRatioMediumBouncy)) }
                                 launch { driftY.animateTo(0f, spring(dampingRatio = Spring.DampingRatioMediumBouncy)) }
