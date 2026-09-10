@@ -33,6 +33,41 @@ expect object SquishySettings {
      */
     fun focusedMinutes(): Int
     fun addFocusedMinutes(minutes: Int)
+
+    /**
+     * Lifetime block counts.
+     *
+     * The timer's own counters live in memory and reset with the process, which
+     * made the journey screen report a lifetime of zero on every cold start.
+     */
+    fun completedBlocks(): Int
+    fun failedBlocks(): Int
+    fun recordBlock(completed: Boolean)
+}
+
+/** Everything the journey screen reports, read once from storage. */
+data class LifetimeStats(
+    val focusedMinutes: Int,
+    val completedBlocks: Int,
+    val failedBlocks: Int,
+) {
+    val attempts: Int get() = completedBlocks + failedBlocks
+
+    /**
+     * Share of started blocks that were finished, or null before the first attempt.
+     *
+     * Null rather than zero: showing 0% to somebody who has not started yet reads
+     * as a judgement they have not earned.
+     */
+    val consistency: Int? get() = if (attempts == 0) null else completedBlocks * 100 / attempts
+
+    companion object {
+        fun load(): LifetimeStats = LifetimeStats(
+            focusedMinutes = SquishySettings.focusedMinutes(),
+            completedBlocks = SquishySettings.completedBlocks(),
+            failedBlocks = SquishySettings.failedBlocks(),
+        )
+    }
 }
 
 /** The material to start with, falling back to the free one for a first run. */

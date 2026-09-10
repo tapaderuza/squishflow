@@ -65,3 +65,11 @@ fun formatRemaining(minutes: Int): String = when {
     minutes % 60 == 0 -> "${minutes / 60} h of focus away"
     else -> "${minutes / 60} h ${minutes % 60} min of focus away"
 }
+
+/** Compact form for narrow columns, where the surrounding UI supplies the context. */
+fun shortRemaining(minutes: Int): String = when {
+    minutes <= 0 -> "Ready"
+    minutes < 60 -> "$minutes min"
+    minutes % 60 == 0 -> "${minutes / 60} h"
+    else -> "${minutes / 60}h ${minutes % 60}m"
+}

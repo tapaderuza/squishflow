@@ -68,7 +68,7 @@ fun App() {
         var showJourney by remember { mutableStateOf(false) }
         var conversionPromptShown by remember { mutableStateOf(SquishySettings.hasSeenConversionPrompt()) }
         val isPremium by RevenueCatManager.isPremium.collectAsStateWithLifecycle()
-        var focusedMinutes by remember { mutableIntStateOf(SquishySettings.focusedMinutes()) }
+        var lifetime by remember { mutableStateOf(LifetimeStats.load()) }
         var material by remember { mutableStateOf(loadSquishyMaterial(isPremium = false)) }
         val restoredMission = remember { deserializeMission(MissionPersistence.load()) }
         var mission by remember { mutableStateOf(restoredMission?.mission) }
@@ -98,9 +98,9 @@ fun App() {
             if (uiState.completedSessions > handledCompletions) {
                 // Bank the block that just finished, so the earn ladder survives
                 // process death rather than resetting with the in-memory timer.
-                val earned = uiState.totalSeconds / 60
-                SquishySettings.addFocusedMinutes(earned)
-                focusedMinutes = SquishySettings.focusedMinutes()
+                SquishySettings.addFocusedMinutes(uiState.totalSeconds / 60)
+                SquishySettings.recordBlock(completed = true)
+                lifetime = LifetimeStats.load()
             }
             if (uiState.completedSessions > handledCompletions && missionAccepted) {
                 handledCompletions = uiState.completedSessions
@@ -111,6 +111,15 @@ fun App() {
                 SquishySettings.markConversionPromptSeen()
                 delay(1_400)
                 showPremiumIntro = true
+            }
+        }
+
+        var handledFailures by remember { mutableIntStateOf(0) }
+        LaunchedEffect(uiState.failedSessions) {
+            if (uiState.failedSessions > handledFailures) {
+                handledFailures = uiState.failedSessions
+                SquishySettings.recordBlock(completed = false)
+                lifetime = LifetimeStats.load()
             }
         }
 
@@ -190,7 +199,9 @@ fun App() {
                 onFinish = { mission = null; missionAccepted = false },
             )
             showJourney -> JourneyScreen(
-                state = uiState,
+                stats = lifetime,
+                selected = material,
+                isPremium = isPremium,
                 onBack = { showJourney = false },
                 onPremium = { showJourney = false; showPremiumIntro = true },
             )
@@ -244,7 +255,8 @@ fun App() {
                 missionBlock = mission!!.blocks.getOrNull(activeBlockIndex),
                 material = material,
                 isPremium = isPremium,
-                focusedMinutes = focusedMinutes,
+                focusedMinutes = lifetime.focusedMinutes,
+                completedBlocks = lifetime.completedBlocks,
                 onMaterialSelected = {
                     material = it
                     SquishySettings.saveMaterialKey(it.name)
@@ -384,6 +396,7 @@ private fun FocusScreen(
     material: SquishyMaterial,
     isPremium: Boolean,
     focusedMinutes: Int,
+    completedBlocks: Int,
     onMaterialSelected: (SquishyMaterial) -> Unit,
     onDurationSelected: (Int) -> Unit,
     onPrimaryAction: () -> Unit,
@@ -423,7 +436,7 @@ private fun FocusScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Header(
-                completedSessions = uiState.completedSessions,
+                completedBlocks = completedBlocks,
                 onJourney = onJourney,
                 protectedAppCount = protectedAppCount,
                 onManageApps = onManageApps,
@@ -539,7 +552,7 @@ private fun FocusScreen(
 
 @Composable
 private fun Header(
-    completedSessions: Int,
+    completedBlocks: Int,
     onJourney: () -> Unit,
     protectedAppCount: Int,
     onManageApps: () -> Unit,
@@ -555,7 +568,7 @@ private fun Header(
         )
         Spacer(Modifier.width(18.dp))
         QuietAction(
-            label = if (completedSessions == 1) "1 block" else "$completedSessions blocks",
+            label = if (completedBlocks == 1) "1 block" else "$completedBlocks blocks",
             onClick = onJourney,
         )
     }
