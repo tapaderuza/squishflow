@@ -6,6 +6,7 @@ actual object SquishySettings {
     private const val MATERIAL = "squish_material_v1"
     private const val PROMPT = "squish_conversion_prompt_v1"
     private const val WELCOME = "squish_welcome_v1"
+    private const val FOCUSED = "squish_focused_minutes_v1"
 
     actual fun loadMaterialKey(): String? =
         NSUserDefaults.standardUserDefaults.stringForKey(MATERIAL)
@@ -26,5 +27,14 @@ actual object SquishySettings {
 
     actual fun markWelcomeSeen() {
         NSUserDefaults.standardUserDefaults.setBool(true, WELCOME)
+    }
+
+    actual fun focusedMinutes(): Int =
+        NSUserDefaults.standardUserDefaults.integerForKey(FOCUSED).toInt()
+
+    actual fun addFocusedMinutes(minutes: Int) {
+        if (minutes <= 0) return
+        val defaults = NSUserDefaults.standardUserDefaults
+        defaults.setInteger((defaults.integerForKey(FOCUSED) + minutes), FOCUSED)
     }
 }

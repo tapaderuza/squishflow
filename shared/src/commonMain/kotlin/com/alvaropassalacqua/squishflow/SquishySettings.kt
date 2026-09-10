@@ -24,6 +24,15 @@ expect object SquishySettings {
     /** Whether the companion has introduced itself. */
     fun hasSeenWelcome(): Boolean
     fun markWelcomeSeen()
+
+    /**
+     * Lifetime focused minutes, the currency that earns squishies.
+     *
+     * This has to survive reinstall-free process death or the ladder in
+     * [MaterialAccess] would silently reset and take earned bodies with it.
+     */
+    fun focusedMinutes(): Int
+    fun addFocusedMinutes(minutes: Int)
 }
 
 /** The material to start with, falling back to the free one for a first run. */

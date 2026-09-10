@@ -7,6 +7,7 @@ actual object SquishySettings {
     private const val MATERIAL = "squishy_material_v1"
     private const val PROMPT = "conversion_prompt_seen_v1"
     private const val WELCOME = "welcome_seen_v1"
+    private const val FOCUSED = "focused_minutes_v1"
 
     private fun prefs() = FocusPreferences.contextOrNull()
         ?.getSharedPreferences(FILE, Context.MODE_PRIVATE)
@@ -27,5 +28,13 @@ actual object SquishySettings {
 
     actual fun markWelcomeSeen() {
         prefs()?.edit()?.putBoolean(WELCOME, true)?.apply()
+    }
+
+    actual fun focusedMinutes(): Int = prefs()?.getInt(FOCUSED, 0) ?: 0
+
+    actual fun addFocusedMinutes(minutes: Int) {
+        if (minutes <= 0) return
+        val store = prefs() ?: return
+        store.edit().putInt(FOCUSED, store.getInt(FOCUSED, 0) + minutes).apply()
     }
 }

@@ -2,6 +2,7 @@ package com.alvaropassalacqua.squishflow
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,6 +26,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
@@ -36,43 +39,54 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * The Pro shelf.
+ * The shelf of bodies.
  *
- * This is what an entitlement actually buys. Each chip is a different soft-body
- * tuning, so tapping one changes how the companion answers your thumb rather than
- * recolouring it — which is also why a locked chip still previews its name and
- * character instead of hiding behind a padlock and nothing else.
+ * A locked chip shows an arc of how close its focus requirement is rather than a
+ * padlock, because the point of [MaterialAccess] is that the person is already on
+ * their way to it. Nothing here says "buy" — the price of every body is time, and
+ * Pro is only the shortcut.
  */
 @Composable
 internal fun MaterialPicker(
     selected: SquishyMaterial,
+    focusedMinutes: Int,
     isPremium: Boolean,
     onSelect: (SquishyMaterial) -> Unit,
     onLockedTapped: (SquishyMaterial) -> Unit,
     modifier: Modifier = Modifier,
     isTrialling: Boolean = false,
 ) {
+    val selectedAccess = selected.accessWith(focusedMinutes, isPremium)
+    val nextToEarn = if (isPremium) null else nextMaterialToEarn(focusedMinutes)
+
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(horizontal = 24.dp),
         ) {
             items(SquishyMaterial.entries, key = { it.name }) { material ->
-                val locked = material.isPro && !isPremium
+                val access = material.accessWith(focusedMinutes, isPremium)
                 MaterialChip(
                     material = material,
+                    access = access,
                     isSelected = material == selected,
-                    isLocked = locked,
-                    onClick = { if (locked) onLockedTapped(material) else onSelect(material) },
+                    onClick = {
+                        if (access.isUsable) onSelect(material) else onLockedTapped(material)
+                    },
                 )
             }
         }
-        Spacer(Modifier.height(8.dp))
+
+        Spacer(Modifier.height(9.dp))
+
         Text(
-            text = if (isTrialling) {
-                "Trying ${selected.displayName} — squeeze it while you can."
-            } else {
-                selected.description
+            text = when {
+                isTrialling -> "Trying ${selected.displayName} — squeeze it while you can."
+                selectedAccess is MaterialAccess.Locked ->
+                    "${selected.displayName} · ${formatRemaining(selectedAccess.remainingMinutes)}"
+                nextToEarn != null ->
+                    "Next: ${nextToEarn.displayName} · ${formatRemaining(nextToEarn.unlockMinutes - focusedMinutes)}"
+                else -> selected.description
             },
             color = if (isTrialling) Coral else Muted.copy(alpha = 0.8f),
             fontSize = 12.sp,
@@ -87,17 +101,22 @@ internal fun MaterialPicker(
 @Composable
 private fun MaterialChip(
     material: SquishyMaterial,
+    access: MaterialAccess,
     isSelected: Boolean,
-    isLocked: Boolean,
     onClick: () -> Unit,
 ) {
+    val locked = access as? MaterialAccess.Locked
     val background by animateColorAsState(
         targetValue = if (isSelected) Ink.copy(alpha = 0.13f) else Ink.copy(alpha = 0.05f),
         label = "chip-background",
     )
     val contentAlpha by animateFloatAsState(
-        targetValue = if (isLocked) 0.45f else 1f,
+        targetValue = if (locked != null) 0.5f else 1f,
         label = "chip-alpha",
+    )
+    val progress by animateFloatAsState(
+        targetValue = locked?.progress ?: 1f,
+        label = "chip-progress",
     )
 
     Row(
@@ -118,30 +137,56 @@ private fun MaterialChip(
             .semantics {
                 role = Role.Tab
                 selected = isSelected
-                contentDescription = if (isLocked) {
-                    "${material.displayName}, included with Pro. ${material.description}"
-                } else {
-                    "${material.displayName}. ${material.description}"
+                contentDescription = when (access) {
+                    is MaterialAccess.Locked ->
+                        "${material.displayName}, ${formatRemaining(access.remainingMinutes)}. ${material.description}"
+                    is MaterialAccess.Earned -> "${material.displayName}, earned. ${material.description}"
+                    else -> "${material.displayName}. ${material.description}"
                 }
             },
     ) {
-        // A dot whose finish previews the material: glossy ones read brighter.
-        Box(
-            Modifier
-                .size(11.dp)
-                .clip(CircleShape)
-                .background(
-                    Color.White.copy(alpha = (0.18f + material.finish.gloss * 0.9f) * contentAlpha),
-                ),
-        )
+        MaterialDot(material = material, progress = progress, showRing = locked != null, alpha = contentAlpha)
         Text(
             text = material.displayName,
             color = Ink.copy(alpha = contentAlpha),
             fontSize = 12.sp,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
         )
-        if (isLocked) {
-            Text("PRO", color = Coral, fontSize = 9.sp, fontWeight = FontWeight.Black, letterSpacing = 0.8.sp)
+    }
+}
+
+/**
+ * A dot whose brightness previews the finish, wrapped by an arc of earn progress
+ * while the body is still locked.
+ */
+@Composable
+private fun MaterialDot(
+    material: SquishyMaterial,
+    progress: Float,
+    showRing: Boolean,
+    alpha: Float,
+) {
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(if (showRing) 16.dp else 11.dp)) {
+        if (showRing) {
+            Canvas(Modifier.size(16.dp)) {
+                val stroke = Stroke(width = 1.6.dp.toPx(), cap = StrokeCap.Round)
+                drawCircle(color = Ink.copy(alpha = 0.18f), style = stroke)
+                if (progress > 0f) {
+                    drawArc(
+                        color = Sage.copy(alpha = 0.85f),
+                        startAngle = -90f,
+                        sweepAngle = 360f * progress,
+                        useCenter = false,
+                        style = stroke,
+                    )
+                }
+            }
         }
+        Box(
+            Modifier
+                .size(if (showRing) 8.dp else 11.dp)
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = (0.18f + material.finish.gloss * 0.9f) * alpha)),
+        )
     }
 }

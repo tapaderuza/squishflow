@@ -23,7 +23,7 @@ data class TimerUiState(
     val focusedSeconds: Int = 0,
     val rescuedSeconds: Int = 0,
     val failedSessions: Int = 0,
-    val sessionIntention: String = "Crear",
+    val sessionIntention: String = "Create",
 ) {
     val isSessionActive: Boolean get() = squishyState == SquishyState.RELAXING
     val progress: Float get() = if (totalSeconds <= 0) 0f else

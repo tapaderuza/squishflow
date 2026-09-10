@@ -12,6 +12,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -63,6 +68,7 @@ fun App() {
         var showJourney by remember { mutableStateOf(false) }
         var conversionPromptShown by remember { mutableStateOf(SquishySettings.hasSeenConversionPrompt()) }
         val isPremium by RevenueCatManager.isPremium.collectAsStateWithLifecycle()
+        var focusedMinutes by remember { mutableIntStateOf(SquishySettings.focusedMinutes()) }
         var material by remember { mutableStateOf(loadSquishyMaterial(isPremium = false)) }
         val restoredMission = remember { deserializeMission(MissionPersistence.load()) }
         var mission by remember { mutableStateOf(restoredMission?.mission) }
@@ -89,6 +95,13 @@ fun App() {
         }
 
         LaunchedEffect(uiState.completedSessions) {
+            if (uiState.completedSessions > handledCompletions) {
+                // Bank the block that just finished, so the earn ladder survives
+                // process death rather than resetting with the in-memory timer.
+                val earned = uiState.totalSeconds / 60
+                SquishySettings.addFocusedMinutes(earned)
+                focusedMinutes = SquishySettings.focusedMinutes()
+            }
             if (uiState.completedSessions > handledCompletions && missionAccepted) {
                 handledCompletions = uiState.completedSessions
                 showReflection = true
@@ -231,6 +244,7 @@ fun App() {
                 missionBlock = mission!!.blocks.getOrNull(activeBlockIndex),
                 material = material,
                 isPremium = isPremium,
+                focusedMinutes = focusedMinutes,
                 onMaterialSelected = {
                     material = it
                     SquishySettings.saveMaterialKey(it.name)
@@ -369,6 +383,7 @@ private fun FocusScreen(
     missionBlock: MissionBlock?,
     material: SquishyMaterial,
     isPremium: Boolean,
+    focusedMinutes: Int,
     onMaterialSelected: (SquishyMaterial) -> Unit,
     onDurationSelected: (Int) -> Unit,
     onPrimaryAction: () -> Unit,
@@ -409,7 +424,6 @@ private fun FocusScreen(
         ) {
             Header(
                 completedSessions = uiState.completedSessions,
-                onPremium = onPremium,
                 onJourney = onJourney,
                 protectedAppCount = protectedAppCount,
                 onManageApps = onManageApps,
@@ -462,6 +476,7 @@ private fun FocusScreen(
             if (!uiState.isSessionActive) {
                 MaterialPicker(
                     selected = trialMaterial ?: material,
+                    focusedMinutes = focusedMinutes,
                     isPremium = isPremium,
                     isTrialling = trialMaterial != null,
                     onSelect = {
@@ -480,18 +495,6 @@ private fun FocusScreen(
                 fontSize = 60.sp,
                 fontWeight = FontWeight.Light,
                 letterSpacing = (-2).sp,
-            )
-
-            Text(
-                text = when (uiState.squishyState) {
-                    SquishyState.TENSE -> "READY"
-                    SquishyState.RELAXING -> "IN FOCUS"
-                    SquishyState.COMPRESSED -> "INTERRUPTED"
-                },
-                color = accent,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 2.sp,
             )
 
             Spacer(Modifier.height(26.dp))
@@ -529,16 +532,7 @@ private fun FocusScreen(
 
             Spacer(Modifier.weight(0.6f))
 
-            Text(
-                if (tensionReleased < 3 && !uiState.isSessionActive)
-                    "Squeeze or stretch Squishy · ${3 - tensionReleased} to go"
-                else
-                    "Squishy is ready to protect your attention",
-                color = Muted.copy(alpha = 0.75f),
-                fontSize = 12.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 18.dp),
-            )
+            Spacer(Modifier.height(18.dp))
         }
     }
 }
@@ -546,71 +540,43 @@ private fun FocusScreen(
 @Composable
 private fun Header(
     completedSessions: Int,
-    onPremium: () -> Unit,
     onJourney: () -> Unit,
     protectedAppCount: Int,
     onManageApps: () -> Unit,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
+        modifier = Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.End,
     ) {
-        Column(Modifier.weight(1f)) {
-            Text(
-                "SQUISHFLOW",
-                color = Ink,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Black,
-                letterSpacing = 2.2.sp,
-            )
-            Text(
-                "YOUR FOCUS COMPANION",
-                color = Muted.copy(alpha = 0.72f),
-                fontSize = 9.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.7.sp,
-            )
-        }
-        TextButton(
+        QuietAction(
+            label = if (protectedAppCount == 0) "Protect apps" else "$protectedAppCount protected",
             onClick = onManageApps,
-            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 7.dp),
-            shape = RoundedCornerShape(16.dp),
-            colors = ButtonDefaults.textButtonColors(containerColor = SoftWhite, contentColor = Muted),
-        ) {
-            Text("$protectedAppCount APP", fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp)
-        }
-        Spacer(Modifier.width(7.dp))
-
-        TextButton(
+        )
+        Spacer(Modifier.width(18.dp))
+        QuietAction(
+            label = if (completedSessions == 1) "1 block" else "$completedSessions blocks",
             onClick = onJourney,
-            modifier = Modifier.size(42.dp),
-            contentPadding = PaddingValues(0.dp),
-            shape = CircleShape,
-            colors = ButtonDefaults.textButtonColors(
-                containerColor = SoftWhite,
-                contentColor = Ink,
-            ),
-        ) {
-            Text(
-                completedSessions.toString().padStart(2, '0'),
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-            )
-        }
-        Spacer(Modifier.width(8.dp))
-        TextButton(
-            onClick = onPremium,
-            contentPadding = PaddingValues(horizontal = 13.dp, vertical = 8.dp),
-            shape = RoundedCornerShape(18.dp),
-            colors = ButtonDefaults.textButtonColors(
-                containerColor = Color(0xFFFFD86B),
-                contentColor = Color(0xFF151713),
-            ),
-        ) {
-            Text("PRO", fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
-        }
+        )
     }
 }
+
+/** A tappable label. No container, no border: weight comes from the type alone. */
+@Composable
+private fun QuietAction(label: String, onClick: () -> Unit) {
+    Text(
+        text = label,
+        color = Muted,
+        fontSize = 11.sp,
+        fontWeight = FontWeight.Medium,
+        letterSpacing = 0.4.sp,
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 6.dp, vertical = 8.dp),
+    )
+}
+
 @Composable
 private fun ReleaseMeter(released: Int) {
     Row(
@@ -837,23 +803,25 @@ private fun PremiumIntroScreen(
             }
             Spacer(Modifier.height(28.dp))
             Text(
-                "Focus should not take force.",
+                "You can earn all of this.",
                 color = Color.White,
                 fontSize = 34.sp,
                 lineHeight = 41.sp,
                 fontWeight = FontWeight.Light,
+                textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(12.dp))
             Text(
-                "A sensory reset, so you return before you drift.",
+                "Every squishy unlocks with focused minutes. Pro is for people who would rather not wait.",
                 color = Color.White.copy(alpha = 0.62f),
                 fontSize = 15.sp,
+                lineHeight = 21.sp,
                 textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(38.dp))
-            PremiumBenefit("01", "Smarter rescues", "Turn movement and breath into time you get back.")
-            PremiumBenefit("02", "Collectable squishies", "Four more bodies, each answering your thumb differently.")
-            PremiumBenefit("03", "Your attention map", "Learn which duration and which rescue actually work for you.")
+            PremiumBenefit("01", "Every body, now", "The four you are working towards, without the wait.")
+            PremiumBenefit("02", "Smarter rescues", "Turn movement and breath into time you get back.")
+            PremiumBenefit("03", "No ads, ever, for anyone", "Subscriptions are the only thing this app sells.")
             Spacer(Modifier.weight(1f))
             Button(
                 onClick = onSeePlans,
@@ -868,9 +836,10 @@ private fun PremiumIntroScreen(
             }
             Spacer(Modifier.height(10.dp))
             Text(
-                "Cancel anytime",
+                "Cancel anytime · keep every squishy you earned",
                 color = Color.White.copy(alpha = 0.45f),
                 fontSize = 11.sp,
+                textAlign = TextAlign.Center,
             )
             Spacer(Modifier.navigationBarsPadding())
         }
@@ -898,28 +867,32 @@ private fun DurationPicker(
     selected: Int,
     onSelected: (Int) -> Unit,
 ) {
-    Row(
-        modifier = Modifier
-            .clip(RoundedCornerShape(24.dp))
-            .background(Ink.copy(alpha = 0.055f))
-            .padding(4.dp),
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
-    ) {
+    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
         listOf(5, 15, 25, 45).forEach { minutes ->
             val active = selected == minutes
-            TextButton(
-                onClick = { onSelected(minutes) },
-                shape = RoundedCornerShape(20.dp),
-                colors = ButtonDefaults.textButtonColors(
-                    containerColor = if (active) SoftWhite else Color.Transparent,
-                    contentColor = if (active) Ink else Muted,
-                ),
-                contentPadding = PaddingValues(horizontal = 17.dp, vertical = 9.dp),
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(10.dp))
+                    .clickable { onSelected(minutes) }
+                    .padding(horizontal = 16.dp, vertical = 9.dp)
+                    .semantics {
+                        role = Role.RadioButton
+                        this.selected = active
+                        contentDescription = "$minutes minute block"
+                    },
             ) {
                 Text(
-                    "$minutes min",
-                    fontSize = 13.sp,
-                    fontWeight = if (active) FontWeight.Bold else FontWeight.Medium,
+                    text = "$minutes",
+                    color = if (active) Ink else Muted,
+                    fontSize = 16.sp,
+                    fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
+                )
+                Spacer(Modifier.height(5.dp))
+                Box(
+                    Modifier
+                        .size(width = 14.dp, height = 1.5.dp)
+                        .background(if (active) Ink else Color.Transparent),
                 )
             }
         }

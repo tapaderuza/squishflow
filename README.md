@@ -41,33 +41,63 @@ The renderer passes a Catmull-Rom curve exactly through the simulated samples, s
 
 Haptics are treated as part of the same object rather than as decoration: Android drives the vibrator directly for per-accent amplitude, iOS uses the Taptic Engine and keeps its generators armed between hits.
 
-## What Pro actually buys
+## Monetisation: focus is the currency
 
-Five bodies, and they are not reskins. Each material retunes the solver:
+**Every squishy can be earned. Pro buys them now.**
 
-| Material | Character | Free |
-| --- | --- | :---: |
-| Jelly | Balanced and translucent | ✅ |
-| Stress ball | Dense foam, snaps straight back | — |
-| Water balloon | Thin skin, keeps sloshing | — |
-| Mochi | Soft, slow to let a shape go | — |
-| Bubble | Weightless, the whole surface rings | — |
+| Material | Character | Unlocks at |
+| --- | --- | --- |
+| Jelly | Balanced and translucent | free |
+| Stress ball | Dense foam, snaps straight back | 1 h of focus |
+| Mochi | Soft, slow to let a shape go | 3 h |
+| Water balloon | Thin skin, keeps sloshing | 7 h |
+| Bubble | Weightless, the whole surface rings | 15 h |
 
-A unit test asserts the difference is real: dense foam must settle in fewer
-frames than jelly, and a water balloon in more. If two materials ever came to
-rest at the same rate, the entitlement would be selling paint.
+This is deliberate rather than clever. A focus app that locks its rewards behind a
+card is working against the thing it claims to want: it profits when you pay, not
+when you concentrate. Making focused minutes the free currency means the app only
+becomes more rewarding the more it actually works, and the subscription is a
+shortcut for people who would rather not wait — plus the reason there are no ads
+and no analytics on anyone, paying or not.
 
-Because only one body is free, tapping a locked chip hands you that material for
-six seconds before the paywall appears. A list of names cannot communicate what
-dense foam feels like.
+Two consequences fall out of it, and both are tested:
+
+- **A lapsed subscription keeps everything you earned.** Taking back a body someone
+  focused an hour for would punish them for using the app as intended.
+- **A locked chip shows an arc of how close it is**, not a padlock, because the
+  person is already on their way to it.
+
+And because only one body is free at the start, tapping a locked chip hands you
+that material for six seconds before the upgrade screen appears. A list of names
+cannot communicate what dense foam feels like.
+
+### The materials are not reskins
+
+Each one retunes the solver — stiffness, damping, neighbour coupling, stretch
+limit. A unit test asserts the difference is real: dense foam must settle in fewer
+frames than jelly, and a water balloon in more. If two materials ever came to rest
+at the same rate, the entitlement would be selling paint.
+
+Hue deliberately stays out of it. Colour carries session state across the whole
+product, and a material that repainted the body would break the one signal the
+user has learned. Materials differ by finish: gloss, rim, speckle, translucency.
+
+## Design
+
+The focus screen is the one you spend real time on, so it carries as little as it
+can. There is no wordmark — you know which app you are in — and no permanent
+upgrade badge, because the upgrade path runs through the bodies you are working
+towards. The state word under the timer is gone too: hue already carries state
+everywhere else in the product, so spelling it out was saying the same thing
+twice. The duration picker is type and a rule rather than a pill inside a track.
 
 ## Accessibility
 
 The companion is built out of motion, so the system reduced-motion setting is
 honoured rather than ignored: the body still deforms under a finger, because that
 is the interaction and not decoration, but it stops breathing, ringing and pulsing
-on its own. Every material chip carries a full TalkBack description including
-whether it is locked, and the body announces its session state.
+on its own. Every material chip carries a full TalkBack description including how
+much focus is left to earn it, and the body announces its session state.
 
 ## Honesty about the planner
 

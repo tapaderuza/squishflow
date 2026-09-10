@@ -17,6 +17,13 @@ enum class SquishyMaterial(
     val displayName: String,
     val description: String,
     val isPro: Boolean,
+    /**
+     * Minutes of accumulated focus that unlock this body for free.
+     *
+     * The ladder starts short so the mechanic proves itself inside the first day,
+     * then lengthens. See [MaterialAccess] for why focus is the free currency.
+     */
+    val unlockMinutes: Int,
     val tuning: Tuning,
     val finish: Finish,
 ) {
@@ -24,6 +31,7 @@ enum class SquishyMaterial(
         displayName = "Jelly",
         description = "Balanced and translucent.",
         isPro = false,
+        unlockMinutes = 0,
         tuning = Tuning(stiffness = 118f, damping = 7.1f, coupling = 46f, maxDisplacement = 0.42f),
         finish = Finish(gloss = 0.30f, rim = 0.10f, speckle = 0.055f, sheen = 0.12f, highlights = 4),
     ),
@@ -32,30 +40,34 @@ enum class SquishyMaterial(
         displayName = "Stress ball",
         description = "Dense foam. Snaps straight back.",
         isPro = true,
+        unlockMinutes = 60,
         tuning = Tuning(stiffness = 235f, damping = 13.5f, coupling = 26f, maxDisplacement = 0.26f),
         finish = Finish(gloss = 0.06f, rim = 0.16f, speckle = 0.10f, sheen = 0.04f, highlights = 6),
-    ),
-
-    WATER_BALLOON(
-        displayName = "Water balloon",
-        description = "Thin skin. Keeps sloshing after you let go.",
-        isPro = true,
-        tuning = Tuning(stiffness = 74f, damping = 3.2f, coupling = 92f, maxDisplacement = 0.52f),
-        finish = Finish(gloss = 0.46f, rim = 0.22f, speckle = 0.02f, sheen = 0.20f, highlights = 2),
     ),
 
     MOCHI(
         displayName = "Mochi",
         description = "Soft, and slow to let a shape go.",
         isPro = true,
+        unlockMinutes = 180,
         tuning = Tuning(stiffness = 96f, damping = 11f, coupling = 38f, maxDisplacement = 0.38f),
         finish = Finish(gloss = 0.04f, rim = 0.07f, speckle = 0.14f, sheen = 0.03f, highlights = 5),
+    ),
+
+    WATER_BALLOON(
+        displayName = "Water balloon",
+        description = "Thin skin. Keeps sloshing after you let go.",
+        isPro = true,
+        unlockMinutes = 420,
+        tuning = Tuning(stiffness = 74f, damping = 3.2f, coupling = 92f, maxDisplacement = 0.52f),
+        finish = Finish(gloss = 0.46f, rim = 0.22f, speckle = 0.02f, sheen = 0.20f, highlights = 2),
     ),
 
     BUBBLE(
         displayName = "Bubble",
         description = "Weightless. One touch and it rings.",
         isPro = true,
+        unlockMinutes = 900,
         tuning = Tuning(stiffness = 150f, damping = 2.6f, coupling = 110f, maxDisplacement = 0.48f),
         finish = Finish(gloss = 0.55f, rim = 0.30f, speckle = 0.01f, sheen = 0.26f, highlights = 3),
     ),
