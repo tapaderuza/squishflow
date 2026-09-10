@@ -100,6 +100,17 @@ user has learned. Materials differ by finish: gloss, rim, speckle, translucency.
 
 ## Design
 
+**Motion has a grammar.** Destinations carry a depth, and the transition between
+any two is chosen from what the move means rather than from one generic fade:
+going deeper rises, going back falls, overlays travel their own axis, and an
+interruption deliberately breaks the rule by arriving with no motion at all —
+being pulled out of a distraction should feel like a stop, and sliding it in
+prettily would soften the one moment the app wants to be abrupt.
+
+**Finishing a block is the peak, so it is the reward.** A settled companion in
+the material you chose, the minutes banked, and a bar moving towards the next
+body on the shelf. The loop closes where the feeling is.
+
 The focus screen is the one you spend real time on, so it carries as little as it
 can. There is no wordmark — you know which app you are in — and no permanent
 upgrade badge, because the upgrade path runs through the bodies you are working
