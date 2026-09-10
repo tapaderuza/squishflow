@@ -233,7 +233,10 @@ fun SessionReflectionScreen(
      * the plan instead of the run would credit focus that never happened.
      */
     bankedMinutes: Int,
+    /** Set when this block was the one that earned a new body. */
+    justUnlocked: SquishyMaterial?,
     material: SquishyMaterial,
+    onWearUnlocked: (SquishyMaterial) -> Unit,
     focusedMinutes: Int,
     isPremium: Boolean,
     reducedMotion: Boolean,
@@ -244,6 +247,7 @@ fun SessionReflectionScreen(
     // marked with an empty green rectangle. What somebody has actually just
     // earned is a settled companion and a step along the shelf, so show both.
     val nextToEarn = if (isPremium) null else nextMaterialToEarn(focusedMinutes)
+    val shown = justUnlocked ?: material
 
     Surface(Modifier.fillMaxSize(), color = Paper) {
         Column(
@@ -260,7 +264,7 @@ fun SessionReflectionScreen(
                 state = SquishyState.RELAXING,
                 progress = 1f,
                 accent = Sage,
-                material = material,
+                material = shown,
                 reducedMotion = reducedMotion,
                 onSquish = {},
                 stageSize = 236.dp,
@@ -268,26 +272,60 @@ fun SessionReflectionScreen(
 
             Spacer(Modifier.height(14.dp))
 
-            Text(
-                "BLOCK COMPLETE",
-                color = Sage,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Black,
-                letterSpacing = 1.8.sp,
-            )
-            Spacer(Modifier.height(6.dp))
-            Text(
-                completedBlock.title,
-                color = PaperInk,
-                fontSize = 26.sp,
-                lineHeight = 32.sp,
-                fontWeight = FontWeight.Light,
-                textAlign = TextAlign.Center,
-            )
-
-            Spacer(Modifier.height(16.dp))
-
-            EarnedBanner(minutes = bankedMinutes, next = nextToEarn, focusedMinutes = focusedMinutes)
+            if (justUnlocked != null) {
+                Text(
+                    "EARNED",
+                    color = Sage,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 1.8.sp,
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    justUnlocked.displayName,
+                    color = PaperInk,
+                    fontSize = 30.sp,
+                    lineHeight = 36.sp,
+                    fontWeight = FontWeight.Light,
+                    textAlign = TextAlign.Center,
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    justUnlocked.description,
+                    color = PaperMuted,
+                    fontSize = 14.sp,
+                    textAlign = TextAlign.Center,
+                )
+                Spacer(Modifier.height(18.dp))
+                Button(
+                    onClick = { onWearUnlocked(justUnlocked) },
+                    shape = RoundedCornerShape(26.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = PaperInk,
+                        contentColor = Sage,
+                    ),
+                    modifier = Modifier.height(52.dp),
+                ) { Text("Hold it", fontWeight = FontWeight.Bold) }
+            } else {
+                Text(
+                    "BLOCK COMPLETE",
+                    color = Sage,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 1.8.sp,
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    completedBlock.title,
+                    color = PaperInk,
+                    fontSize = 26.sp,
+                    lineHeight = 32.sp,
+                    fontWeight = FontWeight.Light,
+                    textAlign = TextAlign.Center,
+                )
+                Spacer(Modifier.height(16.dp))
+                EarnedBanner(minutes = bankedMinutes, next = nextToEarn, focusedMinutes = focusedMinutes)
+            }
 
             Spacer(Modifier.weight(.5f))
 

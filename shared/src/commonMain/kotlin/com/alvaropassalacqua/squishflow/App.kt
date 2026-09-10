@@ -69,6 +69,7 @@ fun App() {
         var showRescueMode by remember { mutableStateOf(false) }
         var showJourney by remember { mutableStateOf(false) }
         var trialMaterial by remember { mutableStateOf<SquishyMaterial?>(null) }
+        var justUnlocked by remember { mutableStateOf<SquishyMaterial?>(null) }
         var conversionPromptShown by remember { mutableStateOf(SquishySettings.hasSeenConversionPrompt()) }
         val isPremium by RevenueCatManager.isPremium.collectAsStateWithLifecycle()
         var lifetime by remember { mutableStateOf(LifetimeStats.load()) }
@@ -110,9 +111,11 @@ fun App() {
             if (uiState.completedSessions > handledCompletions) {
                 // Bank the block that just finished, so the earn ladder survives
                 // process death rather than resetting with the in-memory timer.
+                val before = lifetime.focusedMinutes
                 SquishySettings.addFocusedMinutes(uiState.totalSeconds / 60)
                 SquishySettings.recordBlock(completed = true)
                 lifetime = LifetimeStats.load()
+                justUnlocked = materialUnlockedBetween(before, lifetime.focusedMinutes)
             }
             if (uiState.completedSessions > handledCompletions && missionAccepted) {
                 handledCompletions = uiState.completedSessions
@@ -265,11 +268,18 @@ fun App() {
                 completedBlock = mission!!.blocks.getOrNull(activeBlockIndex)
                     ?: MissionBlock("Focus session", uiState.selectedMinutes),
                 bankedMinutes = uiState.totalSeconds / 60,
+                justUnlocked = justUnlocked,
                 material = material,
+                onWearUnlocked = {
+                    material = it
+                    SquishySettings.saveMaterialKey(it.name)
+                    justUnlocked = null
+                },
                 focusedMinutes = lifetime.focusedMinutes,
                 isPremium = isPremium,
                 reducedMotion = reducedMotion,
                 onRated = { feeling ->
+                    justUnlocked = null
                     val next = (activeBlockIndex + 1).takeIf { it <= mission!!.blocks.lastIndex }
                     showReflection = false
                     if (next == null) {

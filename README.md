@@ -87,6 +87,10 @@ And because only one body is free at the start, tapping a locked chip hands you
 that material for six seconds before the upgrade screen appears. A list of names
 cannot communicate what dense foam feels like.
 
+<p align="center">
+  <img src="evidence/unlock.png" width="34%" alt="Earning a squishy: the new body revealed with its name and finish">
+</p>
+
 ### The materials are not reskins
 
 Each one retunes the solver — stiffness, damping, neighbour coupling, stretch
@@ -106,6 +110,10 @@ going deeper rises, going back falls, overlays travel their own axis, and an
 interruption deliberately breaks the rule by arriving with no motion at all —
 being pulled out of a distraction should feel like a stop, and sliding it in
 prettily would soften the one moment the app wants to be abrupt.
+
+**Earning a body is a moment.** Crossing a threshold used to pass in silence —
+the progress bar simply arrived full. The block that earns a squishy now reveals
+it: the new body in its own finish, its name, and a button to start holding it.
 
 **Finishing a block is the peak, so it is the reward.** A settled companion in
 the material you chose, the minutes banked, and a bar moving towards the next

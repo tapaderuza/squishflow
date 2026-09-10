@@ -73,3 +73,20 @@ fun shortRemaining(minutes: Int): String = when {
     minutes % 60 == 0 -> "${minutes / 60} h"
     else -> "${minutes / 60}h ${minutes % 60}m"
 }
+
+/**
+ * The body, if any, that crossed its threshold between two focus totals.
+ *
+ * Earning a squishy is the payoff the whole model builds towards, and it used to
+ * pass in silence: the progress bar simply arrived full. Detecting the crossing
+ * here rather than in a composable keeps it testable, including the case that
+ * matters most — a single long block that clears a threshold outright.
+ */
+fun materialUnlockedBetween(beforeMinutes: Int, afterMinutes: Int): SquishyMaterial? {
+    if (afterMinutes <= beforeMinutes) return null
+    return SquishyMaterial.entries
+        .filter { it.isPro && beforeMinutes < it.unlockMinutes && afterMinutes >= it.unlockMinutes }
+        // A block long enough to clear two rungs at once should celebrate the
+        // better one, not the one it happened to pass first.
+        .maxByOrNull { it.unlockMinutes }
+}

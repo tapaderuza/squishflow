@@ -2,6 +2,7 @@ package com.alvaropassalacqua.squishflow
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class MaterialAccessTest {
@@ -92,5 +93,43 @@ class MaterialAccessTest {
         assertEquals("45 min of focus away", formatRemaining(45))
         assertEquals("2 h of focus away", formatRemaining(120))
         assertEquals("1 h 30 min of focus away", formatRemaining(90))
+    }
+}
+
+class MaterialUnlockTest {
+
+    @Test
+    fun crossingAThresholdIsDetected() {
+        val stressBall = SquishyMaterial.STRESS_BALL
+        assertEquals(
+            stressBall,
+            materialUnlockedBetween(stressBall.unlockMinutes - 5, stressBall.unlockMinutes),
+        )
+    }
+
+    @Test
+    fun stayingBelowOrAboveUnlocksNothing() {
+        assertNull(materialUnlockedBetween(10, 30), "Nothing was crossed")
+        assertNull(materialUnlockedBetween(200, 230), "Already past both rungs below")
+    }
+
+    @Test
+    fun anIdleBlockUnlocksNothing() {
+        assertNull(materialUnlockedBetween(60, 60))
+        assertNull(materialUnlockedBetween(60, 30), "Time cannot run backwards")
+    }
+
+    @Test
+    fun clearingTwoRungsAtOnceCelebratesTheBetterOne() {
+        // A long block can jump past more than one threshold, and the moment
+        // should be about the best thing won, not the first one passed.
+        val unlocked = materialUnlockedBetween(50, 200)
+        assertEquals(SquishyMaterial.MOCHI, unlocked)
+    }
+
+    @Test
+    fun landingExactlyOnAThresholdCounts() {
+        val mochi = SquishyMaterial.MOCHI
+        assertEquals(mochi, materialUnlockedBetween(mochi.unlockMinutes - 1, mochi.unlockMinutes))
     }
 }
