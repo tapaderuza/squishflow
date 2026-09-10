@@ -1,28 +1,72 @@
-# Squish — Your AI Focus Companion
+# Squishflow
 
-Squish turns a free-form goal into a small, reviewable focus mission. Its companion reflects the current session, and the next duration adapts to a one-tap reflection.
+**A focus timer you can squeeze.** Kotlin Multiplatform, one shared Compose UI, Android and iOS.
 
-## Current vertical slice
+Rigid Pomodoro apps ask you to be disciplined at exactly the moment you have no discipline left. Squishflow puts a soft body between you and the work: you tell it what you want to finish, it hands back blocks short enough to believe, and while you sit with the tension you can push your thumb into Squishy and feel it push back.
 
-`Goal → Mission plan → Review → Focus block → Reflection → Adapted next block`
+<p align="center">
+  <img src="evidence/squish_focus.png" width="30%" alt="Focus screen with Squishy at rest">
+  <img src="evidence/squish_deform.png" width="30%" alt="Squishy deforming under a drag">
+  <img src="evidence/verify_plan.png" width="30%" alt="Generated mission plan">
+</p>
 
-- Kotlin Multiplatform and Compose Multiplatform shared UI/logic.
-- Monotonic timer with `TENSE`, `RELAXING`, and `COMPRESSED` states.
-- Offline local planner with a boundary for a future server-backed model.
-- Explainable adaptation: easy `+5m`, right `same`, too much `-5m` (10–60m).
-- RevenueCat KMP paywall and `squish_pro` entitlement boundary.
-- Android conscious-pause protection and on-device pose-based Rescue Mode.
+---
 
-The current planner is deterministic and on-device. Do not claim that it learns or uses a generative model. A remote AI provider must be called through a backend; API secrets must never ship in mobile binaries.
+## What is actually built
 
-## Build and test
+`Goal → mission plan → review → focus block → reflection → adapted next block`
 
-```powershell
-.\gradlew.bat :shared:allTests :androidApp:assembleDebug --console=plain
+- **Kotlin Multiplatform + Compose Multiplatform.** The UI, the timer, the planner and the physics are all in `commonMain`. The platform source sets hold only what genuinely differs: haptics, persistence, app selection, pose detection.
+- **A soft-body Squishy.** Not a sprite being scaled — see below.
+- **Monotonic timer** with `TENSE`, `RELAXING` and `COMPRESSED` states that drive colour, motion and face.
+- **An offline planner** that decomposes a free-form goal into blocks, behind a `MissionPlanner` interface so a server-backed model can replace it without touching the UI.
+- **Explainable adaptation.** One tap after each block: easy `+5m`, right `same`, too much `−5m`, clamped to 10–60.
+- **RevenueCat KMP** paywall and the `squish_pro` entitlement boundary.
+- **Conscious pause** on Android and Family Controls shielding on iOS, both optional and both behind an explicit disclosure.
+
+## The squishy is a physics model
+
+`SquishyPhysics` is the part worth reading. The silhouette is a ring of 26 radial samples, each with a displacement and a velocity:
+
+- **Neighbour coupling** — the discrete Laplacian around the ring — turns every press into a wave that travels across the surface instead of a local scale.
+- **Volume conservation** removes the mean displacement on each step, so denting one side necessarily bulges the other. Without it the body just deflates under a held finger.
+- **Fixed 240 Hz sub-stepping** means a dropped frame cannot push the explicit integrator past its stability limit and blow the body up.
+- The frame loop **parks itself** once every sample is at rest, so an idle Squishy costs nothing.
+
+The renderer passes a Catmull-Rom curve exactly through the simulated samples, so what the physics computes is what you see. It has no Compose dependency and is covered by unit tests, including the dropped-frame and held-finger cases that would otherwise only show up on a real device as a body that explodes or resonates.
+
+Haptics are treated as part of the same object rather than as decoration: Android drives the vibrator directly for per-accent amplitude, iOS uses the Taptic Engine and keeps its generators armed between hits.
+
+## Honesty about the planner
+
+The current planner is **deterministic and on-device**. It does not learn, and there is no model behind it. The interface says "adaptive focus", never "AI", and the app tells you the plan was built on your device.
+
+A remote provider must be reached through a backend. No API secret ever ships in a mobile binary.
+
+## Build
+
+Android, from Windows, macOS or Linux:
+
+```bash
+./gradlew :shared:testDebugUnitTest :androidApp:assembleDebug
 ```
 
-Before store submission, replace the RevenueCat placeholders, configure offerings, sign release builds, and run sandbox purchases on physical Android and iOS devices.
+iOS targets are declared only on macOS, so the project builds on a Windows machine instead of failing inside the Kotlin/Native compiler. On a Mac, open `iosApp/iosApp.xcodeproj` after running the same command.
 
-## Shipaton focus
+Before any store submission: replace the RevenueCat test key with the platform keys, configure the offerings, sign the release builds, and run sandbox purchases on physical devices. `docs/PRODUCTION_READINESS.md` tracks that gate and is deliberately not all ticked.
 
-Primary categories: Ship Kotlin Everywhere, RevenueCat Design Award, HAMM Award, and #BuildInPublic. See [`docs/SHIPATON_STRATEGY.md`](docs/SHIPATON_STRATEGY.md).
+## Repository map
+
+| Path | What lives there |
+| --- | --- |
+| `shared/src/commonMain/.../SquishyPhysics.kt` | The soft-body model. Pure Kotlin, no UI. |
+| `shared/src/commonMain/.../SquishyCanvas.kt` | Gestures, the frame loop and the renderer. |
+| `shared/src/commonMain/.../MissionPlanner.kt` | Goal decomposition. |
+| `shared/src/commonMain/.../App.kt` | Screens and navigation. |
+| `shared/src/commonMain/.../Theme.kt` | Palette and state colours. |
+| `shared/src/commonTest/` | Physics, planner and timer tests. |
+| `docs/` | Product decisions, production gate, privacy draft. |
+
+## Licence
+
+Apache 2.0 — see [`LICENSE.txt`](LICENSE.txt).
