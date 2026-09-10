@@ -1,0 +1,209 @@
+package com.alvaropassalacqua.squishflow
+
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
+import kotlin.math.abs
+import kotlin.random.Random
+
+private val FaceInk = Color(0xFF151713)
+
+/**
+ * What the face is doing that nobody asked it to.
+ *
+ * A companion that only moves when touched is a control, not a character. Two
+ * autonomous behaviours do almost all the work of making it read as alive:
+ *
+ * - **Blinking.** A face that never blinks is uncanny, and this is the cheapest
+ *   possible fix for it.
+ * - **Gaze drift.** Eyes that hold one position look painted on. Letting them
+ *   wander a few pixels every few seconds reads as something thinking.
+ *
+ * Both are suppressed under reduced motion, because both are movement the person
+ * did not ask for, which is the contract the rest of the app keeps.
+ */
+internal data class FaceMood(
+    /** 1 is fully open, 0 fully closed. */
+    val openness: Float = 1f,
+    /** Where the eyes have wandered to, in pixels. */
+    val gaze: Offset = Offset.Zero,
+)
+
+@Composable
+internal fun rememberFaceMood(reducedMotion: Boolean): FaceMood {
+    val openness = remember { Animatable(1f) }
+    val gazeX = remember { Animatable(0f) }
+    val gazeY = remember { Animatable(0f) }
+    val still by rememberUpdatedState(reducedMotion)
+
+    LaunchedEffect(reducedMotion) {
+        if (still) {
+            openness.snapTo(1f)
+            return@LaunchedEffect
+        }
+        val random = Random(0xB11)
+        while (true) {
+            // Human blink spacing is irregular. A fixed interval reads as a
+            // metronome and is somehow worse than not blinking at all.
+            delay(random.nextLong(2_600, 6_400))
+            repeat(if (random.nextInt(100) < 18) 2 else 1) {
+                openness.animateTo(0.06f, tween(70, easing = FastOutSlowInEasing))
+                openness.animateTo(1f, tween(110, easing = FastOutSlowInEasing))
+            }
+        }
+    }
+
+    LaunchedEffect(reducedMotion) {
+        if (still) {
+            gazeX.snapTo(0f)
+            gazeY.snapTo(0f)
+            return@LaunchedEffect
+        }
+        val random = Random(0x9A2)
+        while (true) {
+            delay(random.nextLong(1_900, 4_800))
+            val targetX = random.nextFloat() * 6f - 3f
+            val targetY = random.nextFloat() * 3f - 1.5f
+            // Slow enough to read as attention moving, not as a twitch.
+            gazeX.animateTo(targetX, tween(900, easing = LinearEasing))
+            gazeY.animateTo(targetY, tween(900, easing = LinearEasing))
+        }
+    }
+
+    return FaceMood(
+        openness = openness.value,
+        gaze = Offset(gazeX.value, gazeY.value),
+    )
+}
+
+/**
+ * The face.
+ *
+ * [pressure] is how hard the body is currently being deformed, 0 to 1. The eyes
+ * narrow with it, because a squishy being squeezed should look like it notices.
+ */
+@Composable
+internal fun SquishyFace(
+    state: SquishyState,
+    lookX: Float,
+    lookY: Float,
+    pressure: Float,
+    mood: FaceMood,
+    modifier: Modifier = Modifier,
+) {
+    Canvas(modifier) {
+        val shift = (lookX / 8f).coerceIn(-7f, 7f)
+        val verticalShift = (lookY / 10f).coerceIn(-4f, 4f)
+        val eyeY = size.height * if (state == SquishyState.COMPRESSED) 0.47f else 0.43f
+        val eyeGap = size.width * 0.105f
+        val radius = if (state == SquishyState.COMPRESSED) 5.dp.toPx() else 7.5.dp.toPx()
+
+        val centre = Offset(
+            x = size.width / 2f + shift + lookX + mood.gaze.x,
+            y = eyeY + verticalShift + lookY + mood.gaze.y,
+        )
+        val left = Offset(centre.x - eyeGap, centre.y)
+        val right = Offset(centre.x + eyeGap, centre.y)
+
+        if (state == SquishyState.COMPRESSED) {
+            drawCross(left, radius)
+            drawCross(right, radius)
+        } else {
+            // Blinking and squinting both close the eye, so they multiply rather
+            // than fight: a blink during a hard squeeze still shuts completely.
+            val squint = 1f - (pressure.coerceIn(0f, 1f) * 0.55f)
+            val open = (mood.openness * squint).coerceIn(0.04f, 1f)
+            drawEye(left, radius, open)
+            drawEye(right, radius, open)
+        }
+
+        val blushAlpha = if (state == SquishyState.RELAXING) 0.42f else 0.25f
+        drawCircle(
+            Color(0xFFFF8B86).copy(alpha = blushAlpha),
+            radius = 10.dp.toPx(),
+            center = Offset(size.width * 0.35f + lookX, size.height * 0.52f + lookY),
+        )
+        drawCircle(
+            Color(0xFFFF8B86).copy(alpha = blushAlpha),
+            radius = 10.dp.toPx(),
+            center = Offset(size.width * 0.65f + lookX, size.height * 0.52f + lookY),
+        )
+
+        drawArc(
+            color = FaceInk,
+            startAngle = if (state == SquishyState.COMPRESSED) 205f else 20f,
+            sweepAngle = if (state == SquishyState.RELAXING) 140f else 130f,
+            useCenter = false,
+            topLeft = Offset(size.width * 0.43f + lookX, size.height * 0.49f + lookY),
+            size = Size(size.width * 0.14f, size.height * 0.09f),
+            style = Stroke(width = 3.5.dp.toPx(), cap = StrokeCap.Round),
+        )
+    }
+}
+
+/**
+ * One eye, squashed vertically by [open].
+ *
+ * A closing eye keeps its width and loses its height, which is what an eyelid
+ * actually does; scaling both would read as the eye shrinking away instead.
+ */
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawEye(
+    centre: Offset,
+    radius: Float,
+    open: Float,
+) {
+    val height = radius * 2f * open
+    drawOval(
+        color = FaceInk,
+        topLeft = Offset(centre.x - radius, centre.y - height / 2f),
+        size = Size(radius * 2f, height),
+    )
+    // The catchlight only survives while there is an eye to sit in.
+    if (open > 0.45f) {
+        drawCircle(
+            Color.White.copy(alpha = 0.9f * ((open - 0.45f) / 0.55f)),
+            radius * 0.28f,
+            center = centre + Offset(-radius * 0.25f, -radius * 0.28f * open),
+        )
+    }
+}
+
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawCross(centre: Offset, radius: Float) {
+    val arm = radius * 0.95f
+    drawLine(
+        FaceInk,
+        start = centre + Offset(-arm, -arm * 0.6f),
+        end = centre + Offset(arm, arm * 0.6f),
+        strokeWidth = 4.dp.toPx(),
+        cap = StrokeCap.Round,
+    )
+    drawLine(
+        FaceInk,
+        start = centre + Offset(-arm, arm * 0.6f),
+        end = centre + Offset(arm, -arm * 0.6f),
+        strokeWidth = 4.dp.toPx(),
+        cap = StrokeCap.Round,
+    )
+}
+
+/** How deformed the body currently is, as a 0..1 value the face can react to. */
+internal fun SquishyPhysics.pressure(): Float {
+    var peak = 0f
+    for (i in 0 until pointCount) peak = maxOf(peak, abs(displacementAt(i)))
+    return (peak / 0.35f).coerceIn(0f, 1f)
+}

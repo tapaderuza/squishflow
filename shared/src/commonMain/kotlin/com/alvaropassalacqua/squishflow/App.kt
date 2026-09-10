@@ -68,6 +68,7 @@ fun App() {
         var showPremiumIntro by remember { mutableStateOf(false) }
         var showRescueMode by remember { mutableStateOf(false) }
         var showJourney by remember { mutableStateOf(false) }
+        var trialMaterial by remember { mutableStateOf<SquishyMaterial?>(null) }
         var conversionPromptShown by remember { mutableStateOf(SquishySettings.hasSeenConversionPrompt()) }
         val isPremium by RevenueCatManager.isPremium.collectAsStateWithLifecycle()
         var lifetime by remember { mutableStateOf(LifetimeStats.load()) }
@@ -85,6 +86,15 @@ fun App() {
 
         LaunchedEffect(isPremium) {
             material = loadSquishyMaterial(isPremium)
+        }
+
+        LaunchedEffect(trialMaterial) {
+            if (trialMaterial == null) return@LaunchedEffect
+            delay(TRIAL_MILLIS)
+            // Hand the body back before asking for money, so the upgrade screen
+            // opens over the free material rather than over one they cannot keep.
+            trialMaterial = null
+            showPremiumIntro = true
         }
 
         LaunchedEffect(mission, missionAccepted, activeBlockIndex) {
@@ -234,6 +244,15 @@ fun App() {
                 isPremium = isPremium,
                 onBack = { showJourney = false },
                 onPremium = { showJourney = false; showPremiumIntro = true },
+                onSelect = {
+                    material = it
+                    SquishySettings.saveMaterialKey(it.name)
+                    showJourney = false
+                },
+                onTryLocked = {
+                    trialMaterial = it
+                    showJourney = false
+                },
             )
             Destination.Rescue -> RescueModeScreen(
                 onDismiss = { showRescueMode = false },
@@ -288,15 +307,10 @@ fun App() {
             Destination.Focus -> FocusScreen(
                 uiState = uiState,
                 missionBlock = mission!!.blocks.getOrNull(activeBlockIndex),
-                material = material,
-                isPremium = isPremium,
-                focusedMinutes = lifetime.focusedMinutes,
+                material = trialMaterial ?: material,
                 completedBlocks = lifetime.completedBlocks,
                 reducedMotion = reducedMotion,
-                onMaterialSelected = {
-                    material = it
-                    SquishySettings.saveMaterialKey(it.name)
-                },
+                isTrialling = trialMaterial != null,
                 onDurationSelected = timerViewModel::selectDuration,
                 onPrimaryAction = {
                     if (uiState.isSessionActive) timerViewModel.failSession()
@@ -431,11 +445,9 @@ private fun FocusScreen(
     uiState: TimerUiState,
     missionBlock: MissionBlock?,
     material: SquishyMaterial,
-    isPremium: Boolean,
-    focusedMinutes: Int,
     completedBlocks: Int,
     reducedMotion: Boolean,
-    onMaterialSelected: (SquishyMaterial) -> Unit,
+    isTrialling: Boolean,
     onDurationSelected: (Int) -> Unit,
     onPrimaryAction: () -> Unit,
     onPremium: () -> Unit,
@@ -445,16 +457,6 @@ private fun FocusScreen(
     onManageApps: () -> Unit,
 ) {
     var tensionReleased by remember { mutableIntStateOf(0) }
-    var trialMaterial by remember { mutableStateOf<SquishyMaterial?>(null) }
-
-    LaunchedEffect(trialMaterial) {
-        val trialling = trialMaterial ?: return@LaunchedEffect
-        delay(TRIAL_MILLIS)
-        // Hand the body back first, so the paywall opens over the free material
-        // rather than over one the user cannot keep.
-        trialMaterial = null
-        onPremium()
-    }
     val accent by animateColorAsState(
         targetValue = when (uiState.squishyState) {
             SquishyState.TENSE -> Coral
@@ -510,7 +512,7 @@ private fun FocusScreen(
                 state = uiState.squishyState,
                 progress = uiState.progress,
                 accent = accent,
-                material = trialMaterial ?: material,
+                material = material,
                 reducedMotion = reducedMotion,
                 onSquish = {
                     if (!uiState.isSessionActive) {
@@ -519,23 +521,17 @@ private fun FocusScreen(
                 },
             )
 
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(12.dp))
 
             // Hidden mid-session: choosing a new toy is exactly the kind of small
             // decision a focus block is supposed to protect you from.
             if (!uiState.isSessionActive) {
-                MaterialPicker(
-                    selected = trialMaterial ?: material,
-                    focusedMinutes = focusedMinutes,
-                    isPremium = isPremium,
-                    isTrialling = trialMaterial != null,
-                    onSelect = {
-                        trialMaterial = null
-                        onMaterialSelected(it)
-                    },
-                    onLockedTapped = { trialMaterial = it },
+                CurrentMaterialLine(
+                    material = material,
+                    isTrialling = isTrialling,
+                    onOpenShelf = onJourney,
                 )
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(12.dp))
             }
 
 
@@ -585,6 +581,33 @@ private fun FocusScreen(
             Spacer(Modifier.height(18.dp))
         }
     }
+}
+
+/** The body you are holding, and the way into the shelf. */
+@Composable
+private fun CurrentMaterialLine(
+    material: SquishyMaterial,
+    isTrialling: Boolean,
+    onOpenShelf: () -> Unit,
+) {
+    Text(
+        text = if (isTrialling) {
+            "Trying ${material.displayName} — squeeze it while you can"
+        } else {
+            "${material.displayName}  ›"
+        },
+        color = if (isTrialling) Coral else Muted,
+        fontSize = 12.sp,
+        fontWeight = FontWeight.Medium,
+        modifier = Modifier
+            .clip(RoundedCornerShape(10.dp))
+            .clickable(onClick = onOpenShelf)
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .semantics {
+                role = Role.Button
+                contentDescription = "${material.displayName}. Open the shelf to change it."
+            },
+    )
 }
 
 @Composable

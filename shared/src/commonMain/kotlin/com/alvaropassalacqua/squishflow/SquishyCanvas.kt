@@ -70,6 +70,7 @@ internal fun SquishyStage(
     stageSize: androidx.compose.ui.unit.Dp = 292.dp,
 ) {
     val body = remember { SquishyPhysics(tuning = material.tuning) }
+    val mood = rememberFaceMood(reducedMotion)
     val haptics = rememberHaptics()
     val audio = rememberSquishAudio()
     val scope = rememberCoroutineScope()
@@ -133,6 +134,8 @@ internal fun SquishyStage(
             burst.animateTo(1f, tween(720))
         }
     }
+
+    val pressure = remember(frame) { body.pressure() }
 
     Box(
         modifier = modifier.size(stageSize),
@@ -245,6 +248,8 @@ internal fun SquishyStage(
                 state = state,
                 lookX = driftX.value,
                 lookY = driftY.value,
+                pressure = pressure,
+                mood = mood,
                 modifier = Modifier.fillMaxSize(),
             )
         }
@@ -405,76 +410,5 @@ private fun List<RingSample>.toBlobPath(centre: Offset, radius: Float): Path {
             )
         }
         close()
-    }
-}
-
-@Composable
-private fun SquishyFace(
-    state: SquishyState,
-    lookX: Float,
-    lookY: Float,
-    modifier: Modifier = Modifier,
-) {
-    Canvas(modifier) {
-        val faceInk = Color(0xFF151713)
-        val shift = (lookX / 8f).coerceIn(-7f, 7f)
-        val verticalShift = (lookY / 10f).coerceIn(-4f, 4f)
-        val eyeY = size.height * if (state == SquishyState.COMPRESSED) 0.47f else 0.43f
-        val eyeGap = size.width * 0.105f
-        val radius = if (state == SquishyState.COMPRESSED) 5.dp.toPx() else 7.5.dp.toPx()
-        val left = Offset(size.width / 2f - eyeGap + shift + lookX, eyeY + verticalShift + lookY)
-        val right = Offset(size.width / 2f + eyeGap + shift + lookX, eyeY + verticalShift + lookY)
-
-        if (state == SquishyState.COMPRESSED) {
-            drawLine(
-                faceInk,
-                start = left + Offset(-7.dp.toPx(), -4.dp.toPx()),
-                end = left + Offset(7.dp.toPx(), 4.dp.toPx()),
-                strokeWidth = 4.dp.toPx(),
-                cap = StrokeCap.Round,
-            )
-            drawLine(
-                faceInk,
-                start = right + Offset(-7.dp.toPx(), 4.dp.toPx()),
-                end = right + Offset(7.dp.toPx(), -4.dp.toPx()),
-                strokeWidth = 4.dp.toPx(),
-                cap = StrokeCap.Round,
-            )
-        } else {
-            drawCircle(faceInk, radius, center = left)
-            drawCircle(faceInk, radius, center = right)
-            drawCircle(
-                Color.White.copy(alpha = 0.9f),
-                radius * 0.28f,
-                center = left + Offset(-radius * 0.25f, -radius * 0.28f),
-            )
-            drawCircle(
-                Color.White.copy(alpha = 0.9f),
-                radius * 0.28f,
-                center = right + Offset(-radius * 0.25f, -radius * 0.28f),
-            )
-        }
-
-        val blushAlpha = if (state == SquishyState.RELAXING) 0.42f else 0.25f
-        drawCircle(
-            Color(0xFFFF8B86).copy(alpha = blushAlpha),
-            radius = 10.dp.toPx(),
-            center = Offset(size.width * 0.35f + lookX, size.height * 0.52f + lookY),
-        )
-        drawCircle(
-            Color(0xFFFF8B86).copy(alpha = blushAlpha),
-            radius = 10.dp.toPx(),
-            center = Offset(size.width * 0.65f + lookX, size.height * 0.52f + lookY),
-        )
-
-        drawArc(
-            color = faceInk,
-            startAngle = if (state == SquishyState.COMPRESSED) 205f else 20f,
-            sweepAngle = if (state == SquishyState.RELAXING) 140f else 130f,
-            useCenter = false,
-            topLeft = Offset(size.width * 0.43f + lookX, size.height * 0.49f + lookY),
-            size = Size(size.width * 0.14f, size.height * 0.09f),
-            style = Stroke(width = 3.5.dp.toPx(), cap = StrokeCap.Round),
-        )
     }
 }

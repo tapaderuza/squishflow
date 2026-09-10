@@ -31,6 +31,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -53,6 +55,8 @@ fun JourneyScreen(
     isPremium: Boolean,
     onBack: () -> Unit,
     onPremium: () -> Unit,
+    onSelect: (SquishyMaterial) -> Unit,
+    onTryLocked: (SquishyMaterial) -> Unit,
 ) {
     Surface(Modifier.fillMaxSize(), color = Cream) {
         Column(
@@ -106,10 +110,12 @@ fun JourneyScreen(
             Spacer(Modifier.height(12.dp))
 
             SquishyMaterial.entries.forEach { material ->
+                val access = material.accessWith(stats.focusedMinutes, isPremium)
                 CollectionRow(
                     material = material,
-                    access = material.accessWith(stats.focusedMinutes, isPremium),
+                    access = access,
                     isSelected = material == selected,
+                    onClick = { if (access.isUsable) onSelect(material) else onTryLocked(material) },
                 )
                 Spacer(Modifier.height(8.dp))
             }
@@ -174,6 +180,7 @@ private fun CollectionRow(
     material: SquishyMaterial,
     access: MaterialAccess,
     isSelected: Boolean,
+    onClick: () -> Unit,
 ) {
     val locked = access as? MaterialAccess.Locked
     val alpha = if (locked != null) 0.5f else 1f
@@ -189,12 +196,14 @@ private fun CollectionRow(
         shape = RoundedCornerShape(20.dp),
         modifier = Modifier
             .fillMaxWidth()
+            .clickable(onClick = onClick)
             .semantics {
                 contentDescription = when (access) {
                     is MaterialAccess.Locked ->
-                        "${material.displayName}, ${formatRemaining(access.remainingMinutes)}. ${material.description}"
+                        "${material.displayName}, ${formatRemaining(access.remainingMinutes)}. Tap to try it. ${material.description}"
                     else -> "${material.displayName}, $status. ${material.description}"
                 }
+                role = Role.Button
             },
     ) {
         Row(
