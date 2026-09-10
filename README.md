@@ -9,6 +9,10 @@ Rigid Pomodoro apps ask you to be disciplined at exactly the moment you have no 
   <img src="evidence/screen_plan.png" width="30%" alt="A goal turned into focus blocks">
   <img src="evidence/screen_materials.png" width="30%" alt="Focus screen with the material shelf">
 </p>
+<p align="center">
+  <img src="evidence/screen_journey.png" width="46%" alt="The journey screen: lifetime focus and the shelf of earned bodies">
+  <img src="evidence/screen_deform.png" width="30%" alt="The body deformed mid-drag">
+</p>
 
 ---
 
@@ -32,10 +36,6 @@ Rigid Pomodoro apps ask you to be disciplined at exactly the moment you have no 
 - **Volume conservation** removes the mean displacement on each step, so denting one side necessarily bulges the other. Without it the body just deflates under a held finger.
 - **Fixed 240 Hz sub-stepping** means a dropped frame cannot push the explicit integrator past its stability limit and blow the body up.
 - The frame loop **parks itself** once every sample is at rest, so an idle Squishy costs nothing.
-
-<p align="center">
-  <img src="evidence/screen_deform.png" width="34%" alt="The body deformed mid-drag, dented under the finger and bulging opposite">
-</p>
 
 The renderer passes a Catmull-Rom curve exactly through the simulated samples, so what the physics computes is what you see. It has no Compose dependency and is covered by unit tests, including the dropped-frame and held-finger cases that would otherwise only show up on a real device as a body that explodes or resonates.
 

@@ -522,7 +522,7 @@ private fun FocusScreen(
                 if (uiState.boostsUsed == 0) {
                     TextButton(onClick = onRescue) {
                         Text(
-                            "I need a boost  ->",
+                            "I need a boost  →",
                             color = Ink,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
@@ -710,7 +710,7 @@ private fun RescueModeScreen(
                                 fontSize = 11.sp,
                             )
                         }
-                        Text("->", color = Coral, fontWeight = FontWeight.Bold)
+                        Text("→", color = Coral, fontWeight = FontWeight.Bold)
                     }
                 }
             } else {

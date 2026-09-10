@@ -223,7 +223,7 @@ private fun LiveBurpeeCamera(
             )
             Spacer(Modifier.height(7.dp))
             Text(
-                "Standing  ->  floor  ->  standing",
+                "Standing  →  floor  →  standing",
                 color = Color.White.copy(alpha = 0.62f),
                 fontSize = 12.sp,
             )

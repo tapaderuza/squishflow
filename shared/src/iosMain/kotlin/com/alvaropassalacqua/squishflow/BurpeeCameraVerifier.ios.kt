@@ -17,7 +17,7 @@ actual fun BurpeeCameraVerifier(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Text("La verificacion corporal con Vision requiere ejecutarse desde Xcode.")
+        Text("Body verification with Vision has to be run from Xcode.")
         TextButton(onClick = onCancel) { Text("Volver") }
     }
 }
