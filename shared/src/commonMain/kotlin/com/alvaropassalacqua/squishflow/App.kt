@@ -27,6 +27,17 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
+/**
+ * How many blocks a person finishes before Squishflow ever mentions money.
+ *
+ * PRODUCT_DECISIONS.md: never before first value. Asking after a single block
+ * interrupts the exact moment the product is trying to prove itself.
+ */
+private const val PAYWALL_AFTER_SESSIONS = 3
+
+/** How long a locked material stays in the hand before the paywall appears. */
+private const val TRIAL_MILLIS = 6_000L
+
 @Composable
 fun App() {
     MaterialTheme(
@@ -49,7 +60,9 @@ fun App() {
         var showPremiumIntro by remember { mutableStateOf(false) }
         var showRescueMode by remember { mutableStateOf(false) }
         var showJourney by remember { mutableStateOf(false) }
-        var conversionPromptShown by remember { mutableStateOf(false) }
+        var conversionPromptShown by remember { mutableStateOf(SquishySettings.hasSeenConversionPrompt()) }
+        val isPremium by RevenueCatManager.isPremium.collectAsStateWithLifecycle()
+        var material by remember { mutableStateOf(loadSquishyMaterial(isPremium = false)) }
         val restoredMission = remember { deserializeMission(MissionPersistence.load()) }
         var mission by remember { mutableStateOf(restoredMission?.mission) }
         var missionAccepted by remember { mutableStateOf(restoredMission?.accepted == true) }
@@ -59,6 +72,10 @@ fun App() {
 
         LaunchedEffect(Unit) {
             if (RevenueCatManager.configure()) RevenueCatManager.refreshEntitlement()
+        }
+
+        LaunchedEffect(isPremium) {
+            material = loadSquishyMaterial(isPremium)
         }
 
         LaunchedEffect(mission, missionAccepted, activeBlockIndex) {
@@ -75,8 +92,9 @@ fun App() {
                 handledCompletions = uiState.completedSessions
                 showReflection = true
             }
-            if (uiState.completedSessions == 1 && !conversionPromptShown) {
+            if (uiState.completedSessions >= PAYWALL_AFTER_SESSIONS && !conversionPromptShown) {
                 conversionPromptShown = true
+                SquishySettings.markConversionPromptSeen()
                 delay(1_400)
                 showPremiumIntro = true
             }
@@ -204,6 +222,12 @@ fun App() {
             else -> FocusScreen(
                 uiState = uiState,
                 missionBlock = mission!!.blocks.getOrNull(activeBlockIndex),
+                material = material,
+                isPremium = isPremium,
+                onMaterialSelected = {
+                    material = it
+                    SquishySettings.saveMaterialKey(it.name)
+                },
                 onDurationSelected = timerViewModel::selectDuration,
                 onPrimaryAction = {
                     if (uiState.isSessionActive) timerViewModel.failSession()
@@ -324,6 +348,9 @@ private fun FocusInterventionScreen(
 private fun FocusScreen(
     uiState: TimerUiState,
     missionBlock: MissionBlock?,
+    material: SquishyMaterial,
+    isPremium: Boolean,
+    onMaterialSelected: (SquishyMaterial) -> Unit,
     onDurationSelected: (Int) -> Unit,
     onPrimaryAction: () -> Unit,
     onPremium: () -> Unit,
@@ -333,6 +360,17 @@ private fun FocusScreen(
     onManageApps: () -> Unit,
 ) {
     var tensionReleased by remember { mutableIntStateOf(0) }
+    var trialMaterial by remember { mutableStateOf<SquishyMaterial?>(null) }
+    val reducedMotion = rememberReducedMotion()
+
+    LaunchedEffect(trialMaterial) {
+        val trialling = trialMaterial ?: return@LaunchedEffect
+        delay(TRIAL_MILLIS)
+        // Hand the body back first, so the paywall opens over the free material
+        // rather than over one the user cannot keep.
+        trialMaterial = null
+        onPremium()
+    }
     val accent by animateColorAsState(
         targetValue = when (uiState.squishyState) {
             SquishyState.TENSE -> Coral
@@ -389,6 +427,8 @@ private fun FocusScreen(
                 state = uiState.squishyState,
                 progress = uiState.progress,
                 accent = accent,
+                material = trialMaterial ?: material,
+                reducedMotion = reducedMotion,
                 onSquish = {
                     if (!uiState.isSessionActive) {
                         tensionReleased = (tensionReleased + 1).coerceAtMost(3)
@@ -396,7 +436,23 @@ private fun FocusScreen(
                 },
             )
 
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(10.dp))
+
+            // Hidden mid-session: choosing a new toy is exactly the kind of small
+            // decision a focus block is supposed to protect you from.
+            if (!uiState.isSessionActive) {
+                MaterialPicker(
+                    selected = trialMaterial ?: material,
+                    isPremium = isPremium,
+                    isTrialling = trialMaterial != null,
+                    onSelect = {
+                        trialMaterial = null
+                        onMaterialSelected(it)
+                    },
+                    onLockedTapped = { trialMaterial = it },
+                )
+                Spacer(Modifier.height(10.dp))
+            }
 
 
             Text(
@@ -764,7 +820,7 @@ private fun PremiumIntroScreen(
             )
             Spacer(Modifier.height(38.dp))
             PremiumBenefit("01", "Smarter rescues", "Turn movement and breath into time you get back.")
-            PremiumBenefit("02", "Collectable squishies", "New materials, colours and personalities.")
+            PremiumBenefit("02", "Collectable squishies", "Four more bodies, each answering your thumb differently.")
             PremiumBenefit("03", "Your attention map", "Learn which duration and which rescue actually work for you.")
             Spacer(Modifier.weight(1f))
             Button(

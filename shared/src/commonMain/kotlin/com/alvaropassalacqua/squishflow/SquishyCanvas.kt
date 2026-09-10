@@ -65,10 +65,11 @@ internal fun SquishyStage(
     accent: Color,
     onSquish: () -> Unit,
     modifier: Modifier = Modifier,
+    material: SquishyMaterial = SquishyMaterial.free,
     reducedMotion: Boolean = false,
     stageSize: androidx.compose.ui.unit.Dp = 292.dp,
 ) {
-    val body = remember { SquishyPhysics() }
+    val body = remember { SquishyPhysics(tuning = material.tuning) }
     val haptics = rememberHaptics()
     val scope = rememberCoroutineScope()
 
@@ -101,6 +102,16 @@ internal fun SquishyStage(
                 running = false
                 return@LaunchedEffect
             }
+        }
+    }
+
+    // Switching material keeps the current deformation and lets the new constants
+    // carry it home, then rings the body once so the new feel is immediately obvious.
+    LaunchedEffect(material) {
+        body.retune(material.tuning)
+        if (!reducedMotion) {
+            body.impulse(angleRadians = 0f, strength = 3.4f, spread = 1.3f)
+            running = true
         }
     }
 
@@ -215,6 +226,7 @@ internal fun SquishyStage(
             SquishyBody(
                 body = body,
                 state = state,
+                finish = material.finish,
                 frame = frame,
                 driftX = driftX.value,
                 driftY = driftY.value,
@@ -245,6 +257,12 @@ private fun depthFor(position: Offset, centre: Offset, reach: Float): Float {
     return 0.08f + penetration * penetration * 0.46f
 }
 
+/** Sub-surface flecks, scattered off-centre so they never read as a pattern. */
+private val SPECKLES = listOf(
+    0.29f to 0.70f, 0.68f to 0.26f, 0.73f to 0.58f,
+    0.39f to 0.28f, 0.52f to 0.78f, 0.24f to 0.45f,
+)
+
 private fun DrawScope.drawBurst(phase: Float, accent: Color) {
     val directions = listOf(
         -1.0f to -0.25f, -0.72f to -0.72f, -0.2f to -1f,
@@ -266,6 +284,7 @@ private fun DrawScope.drawBurst(phase: Float, accent: Color) {
 private fun SquishyBody(
     body: SquishyPhysics,
     state: SquishyState,
+    finish: SquishyMaterial.Finish,
     frame: Int,
     driftX: Float,
     driftY: Float,
@@ -324,28 +343,27 @@ private fun SquishyBody(
             )
             drawPath(
                 path = blob,
-                color = Color.White.copy(alpha = 0.10f),
+                color = Color.White.copy(alpha = finish.rim),
                 style = Stroke(width = 1.5.dp.toPx()),
             )
             clipPath(blob) {
                 drawOval(
                     brush = Brush.verticalGradient(
-                        listOf(Color.Transparent, Color.White.copy(alpha = 0.12f), Color.Transparent),
+                        listOf(Color.Transparent, Color.White.copy(alpha = finish.sheen), Color.Transparent),
                     ),
                     topLeft = Offset(w * 0.10f, h * 0.62f),
                     size = Size(w * 0.82f, h * 0.25f),
                 )
-                listOf(0.29f to 0.70f, 0.68f to 0.26f, 0.73f to 0.58f, 0.39f to 0.28f)
-                    .forEachIndexed { index, point ->
-                        drawCircle(
-                            color = Color.White.copy(alpha = 0.055f + index * 0.012f),
-                            radius = (5f + index * 1.7f) * density,
-                            center = Offset(w * point.first, h * point.second),
-                        )
-                    }
+                SPECKLES.take(finish.highlights).forEachIndexed { index, point ->
+                    drawCircle(
+                        color = Color.White.copy(alpha = finish.speckle + index * 0.012f),
+                        radius = (5f + index * 1.7f) * density,
+                        center = Offset(w * point.first, h * point.second),
+                    )
+                }
                 drawOval(
                     brush = Brush.linearGradient(
-                        listOf(Color.White.copy(alpha = 0.30f), Color.Transparent),
+                        listOf(Color.White.copy(alpha = finish.gloss), Color.Transparent),
                     ),
                     topLeft = Offset(w * 0.24f, h * 0.16f),
                     size = Size(w * 0.27f, h * 0.12f),

@@ -29,13 +29,30 @@ private const val TAU = (2.0 * PI).toFloat()
  */
 class SquishyPhysics(
     val pointCount: Int = 26,
-    private val stiffness: Float = 118f,
-    private val damping: Float = 7.1f,
-    private val coupling: Float = 46f,
+    tuning: SquishyMaterial.Tuning = SquishyMaterial.free.tuning,
 ) {
     init {
         require(pointCount >= 8) { "A ring needs at least 8 samples to look round" }
-        require(stiffness > 0f && damping > 0f)
+    }
+
+    private var stiffness: Float = tuning.stiffness
+    private var damping: Float = tuning.damping
+    private var coupling: Float = tuning.coupling
+    private var maxDisplacement: Float = tuning.maxDisplacement
+
+    /**
+     * Swap the solver constants without dropping the current deformation.
+     *
+     * Changing material mid-gesture keeps whatever shape the body is already in
+     * and lets the new constants carry it home, so the switch reads as the object
+     * changing rather than as the app resetting.
+     */
+    fun retune(tuning: SquishyMaterial.Tuning) {
+        require(tuning.stiffness > 0f && tuning.damping > 0f) { "A body needs stiffness and damping" }
+        stiffness = tuning.stiffness
+        damping = tuning.damping
+        coupling = tuning.coupling
+        maxDisplacement = tuning.maxDisplacement
     }
 
     private val displacement = FloatArray(pointCount)
@@ -146,13 +163,12 @@ class SquishyPhysics(
         val mean = sum / pointCount
         for (i in 0 until pointCount) {
             displacement[i] -= mean
-            displacement[i] = displacement[i].coerceIn(-MAX_DISPLACEMENT, MAX_DISPLACEMENT)
+            displacement[i] = displacement[i].coerceIn(-maxDisplacement, maxDisplacement)
         }
     }
 
     private companion object {
         const val MAX_STEP = 1f / 240f
-        const val MAX_DISPLACEMENT = 0.42f
     }
 }
 
