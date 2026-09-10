@@ -5,4 +5,4 @@
     android:notificationTimeout="80"
     android:canRetrieveWindowContent="false"
     android:description="@string/focus_guard_description"
-    android:settingsActivity="com.example.squishfocus.MainActivity" />
+    android:settingsActivity="com.alvaropassalacqua.squishflow.MainActivity" />

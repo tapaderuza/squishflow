@@ -15,7 +15,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.example.squishfocus"
+    namespace = "com.alvaropassalacqua.squishflow"
     compileSdk = (findProperty("android.compileSdk") as String).toInt()
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     defaultConfig {

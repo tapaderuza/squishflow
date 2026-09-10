@@ -1,4 +1,4 @@
-rootProject.name = "SquishFocus"
+rootProject.name = "Squishflow"
 include(":androidApp")
 include(":shared")
 

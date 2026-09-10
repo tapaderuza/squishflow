@@ -1,4 +1,4 @@
-package com.example.squishfocus
+package com.alvaropassalacqua.squishflow
 
 import androidx.compose.ui.window.ComposeUIViewController
 

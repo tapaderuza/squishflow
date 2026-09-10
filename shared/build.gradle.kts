@@ -47,11 +47,11 @@ kotlin {
 }
 
 compose.resources {
-    packageOfResClass = "com.example.squishfocus.generated.resources"
+    packageOfResClass = "com.alvaropassalacqua.squishflow.generated.resources"
 }
 
 android {
-    namespace = "com.example.squishfocus.shared"
+    namespace = "com.alvaropassalacqua.squishflow.shared"
     compileSdk = (findProperty("android.compileSdk") as String).toInt()
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     defaultConfig {
