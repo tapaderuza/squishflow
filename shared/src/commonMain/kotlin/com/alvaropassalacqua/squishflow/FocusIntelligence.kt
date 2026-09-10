@@ -30,41 +30,6 @@ interface MissionPlanner {
     suspend fun plan(goal: String, preferredMinutes: Int = 25): FocusMission
 }
 
-class LocalMissionPlanner : MissionPlanner {
-    override suspend fun plan(goal: String, preferredMinutes: Int): FocusMission {
-        val cleanGoal = goal.trim().replace(Regex("\\s+"), " ")
-        require(cleanGoal.length in 8..500) { "Describe a concrete goal" }
-        val parts = cleanGoal
-            .split(Regex("\\s+(?:y|and|then|luego)\\s+|[,;.]", RegexOption.IGNORE_CASE))
-            .map(String::trim)
-            .filter { it.length >= 3 }
-            .take(4)
-            .ifEmpty { listOf(cleanGoal) }
-
-        val focusBlocks = parts.flatMap { part ->
-            val label = part.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
-            listOf(
-                MissionBlock("Preparar · $label", preferredMinutes),
-                MissionBlock("Terminar · $label", preferredMinutes),
-            )
-        }.take(6)
-
-        val blocks = buildList {
-            focusBlocks.forEachIndexed { index, block ->
-                add(block)
-                if (index < focusBlocks.lastIndex && (index + 1) % 2 == 0) {
-                    add(MissionBlock("Respirar y moverse", 10, BlockKind.BREAK))
-                }
-            }
-        }
-        return FocusMission(
-            title = parts.first().take(48),
-            originalGoal = cleanGoal,
-            blocks = blocks,
-        )
-    }
-}
-
 object AdaptiveFocusCoach {
     fun recommend(state: TimerUiState): CoachRecommendation = when {
         state.failedSessions >= 2 && state.completedSessions == 0 -> CoachRecommendation.ShorterSessions()

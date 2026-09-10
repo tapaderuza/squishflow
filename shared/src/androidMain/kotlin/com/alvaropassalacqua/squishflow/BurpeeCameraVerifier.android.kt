@@ -69,7 +69,7 @@ actual fun BurpeeCameraVerifier(
             onCancel = onCancel,
         )
         else -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Solicitando acceso a la camara...", color = Color(0xFF20201E))
+            Text("Requesting camera access...", color = Color(0xFF20201E))
         }
     }
 }
@@ -84,17 +84,17 @@ private fun CameraPermissionDenied(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Text("La camara esta desactivada", fontSize = 25.sp, fontWeight = FontWeight.Light)
+        Text("The camera is off", fontSize = 25.sp, fontWeight = FontWeight.Light)
         Spacer(Modifier.height(12.dp))
         Text(
-            "Necesitamos ver tu cuerpo completo para verificar el movimiento. Ninguna imagen se guarda.",
+            "We need to see your whole body to verify the movement. No image is stored.",
             color = Color(0xFF7C7A73),
             textAlign = TextAlign.Center,
             fontSize = 14.sp,
         )
         Spacer(Modifier.height(28.dp))
-        Button(onClick = onRetry) { Text("Permitir camara") }
-        TextButton(onClick = onCancel) { Text("Volver") }
+        Button(onClick = onRetry) { Text("Allow camera") }
+        TextButton(onClick = onCancel) { Text("Back") }
     }
 }
 
@@ -105,7 +105,7 @@ private fun LiveBurpeeCamera(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    var status by remember { mutableStateOf("Alejate hasta que se vea tu cuerpo completo") }
+    var status by remember { mutableStateOf("Step back until your whole body is visible") }
     var progress by remember { mutableIntStateOf(0) }
     val analysisExecutor = remember { Executors.newSingleThreadExecutor() }
     val mainExecutor = remember(context) { ContextCompat.getMainExecutor(context) }
@@ -183,14 +183,14 @@ private fun LiveBurpeeCamera(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             TextButton(onClick = onCancel) {
-                Text("Cancelar", color = Color.White)
+                Text("Cancel", color = Color.White)
             }
             Surface(
                 color = Color.Black.copy(alpha = 0.38f),
                 shape = RoundedCornerShape(18.dp),
             ) {
                 Text(
-                    "EN EL DISPOSITIVO",
+                    "ON THIS DEVICE",
                     color = Color.White.copy(alpha = 0.8f),
                     fontSize = 9.sp,
                     fontWeight = FontWeight.Bold,
@@ -223,7 +223,7 @@ private fun LiveBurpeeCamera(
             )
             Spacer(Modifier.height(7.dp))
             Text(
-                "De pie  ->  suelo  ->  de pie",
+                "Standing  ->  floor  ->  standing",
                 color = Color.White.copy(alpha = 0.62f),
                 fontSize = 12.sp,
             )
@@ -257,7 +257,7 @@ private class BurpeePoseAnalyzer(
         detector.process(image)
             .addOnSuccessListener { evaluate(it) }
             .addOnFailureListener {
-                onProgress(progressForPhase(), "No puedo leer la pose. Mejora la luz.")
+                onProgress(progressForPhase(), "Cannot read your pose. Try better light.")
             }
             .addOnCompleteListener {
                 processing.set(false)
@@ -282,7 +282,7 @@ private class BurpeePoseAnalyzer(
 
         if (required.size < 10 || required.any { it.inFrameLikelihood < 0.55f }) {
             stableFrames = 0
-            onProgress(progressForPhase(), "Coloca el cuerpo completo dentro del marco")
+            onProgress(progressForPhase(), "Fit your whole body inside the frame")
             return
         }
 
@@ -314,10 +314,10 @@ private class BurpeePoseAnalyzer(
             onProgress(
                 progressForPhase(),
                 when (phase) {
-                    Phase.FIND_STANDING -> "Ponte de pie y muestra el cuerpo completo"
-                    Phase.FIND_DOWN -> "Baja: manos al suelo y piernas atras"
-                    Phase.FIND_RETURN -> "Vuelve arriba para completar"
-                    Phase.DONE -> "Burpee verificado"
+                    Phase.FIND_STANDING -> "Stand up and show your whole body"
+                    Phase.FIND_DOWN -> "Down: hands to the floor, legs back"
+                    Phase.FIND_RETURN -> "Come back up to finish"
+                    Phase.DONE -> "Burpee verified"
                 },
             )
             return
@@ -331,13 +331,13 @@ private class BurpeePoseAnalyzer(
             Phase.DONE -> Phase.DONE
         }
         if (phase == Phase.DONE) {
-            onProgress(3, "Burpee verificado")
+            onProgress(3, "Burpee verified")
             onVerified()
         } else {
             onProgress(
                 progressForPhase(),
-                if (phase == Phase.FIND_DOWN) "Ahora baja y lleva las manos al suelo"
-                else "Perfecto. Vuelve a ponerte de pie",
+                if (phase == Phase.FIND_DOWN) "Now drop and put your hands on the floor"
+                else "Good. Now stand back up",
             )
         }
     }

@@ -101,10 +101,10 @@ actual fun DistractionPicker(onContinue: (List<String>) -> Unit) {
             Spacer(Modifier.height(16.dp))
             Text("01 / 01", color = accent, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.8.sp)
             Spacer(Modifier.height(22.dp))
-            Text("¿Qué te roba el foco?", color = ink, fontSize = 32.sp, fontWeight = FontWeight.Light)
+            Text("What steals your focus?", color = ink, fontSize = 32.sp, fontWeight = FontWeight.Light)
             Spacer(Modifier.height(10.dp))
             Text(
-                "Elige las apps que sueles abrir por impulso. Squishy las convertirá en una decisión consciente.",
+                "Pick the apps you open on impulse. Squishy turns opening them into a decision.",
                 color = muted, fontSize = 14.sp, lineHeight = 21.sp,
             )
             Spacer(Modifier.height(24.dp))
@@ -151,7 +151,7 @@ actual fun DistractionPicker(onContinue: (List<String>) -> Unit) {
                 ),
             ) {
                 Text(
-                    if (selected.isEmpty()) "Elige al menos una" else "Activar protección  ·  ${selected.size}",
+                    if (selected.isEmpty()) "Pick at least one" else "Turn on protection  ·  ${selected.size}",
                     fontWeight = FontWeight.Bold,
                 )
             }
@@ -164,16 +164,16 @@ actual fun DistractionPicker(onContinue: (List<String>) -> Unit) {
             containerColor = Color(0xFF171A18),
             titleContentColor = Color(0xFFF2F0E9),
             textContentColor = Color(0xFFB8BBB3),
-            title = { Text("Protección de foco") },
+            title = { Text("Focus protection") },
             text = {
                 Text(
-                    "SquishFocus usa Accesibilidad para detectar únicamente cuándo abres una app elegida y mostrarte una pausa con Squishy. No lee, guarda ni comparte textos, correos ni contenido de pantalla. Puedes desactivarlo cuando quieras en Ajustes.",
+                    "Squishflow uses Accessibility only to detect when you open an app you picked, so it can show you a pause with Squishy. It never reads, stores or shares text, email or anything on your screen. You can turn it off at any time in Settings.",
                     lineHeight = 20.sp,
                 )
             },
             dismissButton = {
                 TextButton(onClick = { showDisclosure = false }) {
-                    Text("Ahora no", color = Color(0xFF969991))
+                    Text("Not now", color = Color(0xFF969991))
                 }
             },
             confirmButton = {
@@ -187,7 +187,7 @@ actual fun DistractionPicker(onContinue: (List<String>) -> Unit) {
                         containerColor = Color(0xFF8DD6AA),
                         contentColor = Color(0xFF102016),
                     ),
-                ) { Text("Entiendo y continuar", fontWeight = FontWeight.Bold) }
+                ) { Text("I understand — continue", fontWeight = FontWeight.Bold) }
             },
         )
     }}

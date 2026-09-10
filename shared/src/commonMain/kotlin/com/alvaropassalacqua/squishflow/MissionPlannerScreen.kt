@@ -31,7 +31,7 @@ fun MissionPlannerScreen(
         Column(
             Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(26.dp),
         ) {
-            Text("SQUISHFLOW · AI FOCUS COACH", color = ink, fontSize = 12.sp, fontWeight = FontWeight.Black, letterSpacing = 1.6.sp)
+            Text("SQUISHFLOW · ADAPTIVE FOCUS", color = ink, fontSize = 12.sp, fontWeight = FontWeight.Black, letterSpacing = 1.6.sp)
             Spacer(Modifier.weight(.7f))
             Text("What do you want\nto finish today?", color = ink, fontSize = 38.sp, lineHeight = 43.sp, fontWeight = FontWeight.Light)
             Spacer(Modifier.height(14.dp))

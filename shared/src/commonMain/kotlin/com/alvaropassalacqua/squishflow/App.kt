@@ -489,7 +489,7 @@ private fun Header(
                 letterSpacing = 2.2.sp,
             )
             Text(
-                "AI FOCUS COMPANION",
+                "YOUR FOCUS COMPANION",
                 color = Muted.copy(alpha = 0.72f),
                 fontSize = 9.sp,
                 fontWeight = FontWeight.Bold,

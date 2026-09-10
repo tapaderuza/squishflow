@@ -35,14 +35,14 @@ actual object FocusPreferences {
 
 @Composable
 actual fun DistractionPicker(onContinue: (List<String>) -> Unit) {
-    val choices = listOf("Redes sociales", "Video", "Mensajeria", "Noticias", "Juegos", "Compras")
+    val choices = listOf("Social", "Video", "Messaging", "News", "Games", "Shopping")
     var selected by remember { mutableStateOf(setOf<String>()) }
     Surface(Modifier.fillMaxSize(), color = Color(0xFF0C0E0D)) {
         Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(24.dp)) {
             Spacer(Modifier.height(24.dp))
-            Text("¿Qué te roba el foco?", color = Color(0xFFF2F0E9), fontSize = 32.sp, fontWeight = FontWeight.Light)
+            Text("What steals your focus?", color = Color(0xFFF2F0E9), fontSize = 32.sp, fontWeight = FontWeight.Light)
             Spacer(Modifier.height(10.dp))
-            Text("Elige tus distracciones habituales. La selección específica de apps se activará con Family Controls.", color = Color(0xFF969991), fontSize = 14.sp)
+            Text("Pick your usual distractions. Per-app selection arrives with Family Controls.", color = Color(0xFF969991), fontSize = 14.sp)
             Spacer(Modifier.height(28.dp))
             choices.forEach { choice ->
                 val active = choice in selected
@@ -62,7 +62,7 @@ actual fun DistractionPicker(onContinue: (List<String>) -> Unit) {
                 enabled = selected.isNotEmpty(),
                 modifier = Modifier.fillMaxWidth().height(58.dp),
                 shape = RoundedCornerShape(29.dp),
-            ) { Text("Conocer a Squishy", fontWeight = FontWeight.Bold) }
+            ) { Text("Meet Squishy", fontWeight = FontWeight.Bold) }
         }
     }
 }

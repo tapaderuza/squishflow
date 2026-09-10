@@ -92,7 +92,9 @@ internal fun SquishyStage(
             val now = withFrameNanos { it }
             val delta = ((now - previous) / 1_000_000_000.0).toFloat()
             previous = now
-            if (fingerDown) body.press(fingerAngle, fingerDepth)
+            // A tighter arc than the default reads as a fingertip pushing in,
+            // rather than a whole hand flattening one side of the body.
+            if (fingerDown) body.press(fingerAngle, fingerDepth, spread = 0.6f)
             body.advance(delta)
             frame++
             if (!fingerDown && body.isAtRest()) {
@@ -240,7 +242,7 @@ private fun depthFor(position: Offset, centre: Offset, reach: Float): Float {
     if (reach <= 0f) return 0f
     val distance = hypot(position.x - centre.x, position.y - centre.y)
     val penetration = ((reach - distance) / reach).coerceIn(0f, 1f)
-    return 0.06f + penetration * penetration * 0.34f
+    return 0.08f + penetration * penetration * 0.46f
 }
 
 private fun DrawScope.drawBurst(phase: Float, accent: Color) {
