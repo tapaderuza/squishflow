@@ -52,6 +52,7 @@ fun App() {
         val blockedPackage by InterceptEvents.blockedPackage.collectAsStateWithLifecycle()
         val selectionRequest by SelectionEvents.requests.collectAsStateWithLifecycle()
         val lifecycleOwner = LocalLifecycleOwner.current
+        var welcomeSeen by remember { mutableStateOf(SquishySettings.hasSeenWelcome()) }
         var onboardingComplete by remember { mutableStateOf(FocusPreferences.hasCompletedOnboarding()) }
         var protectedAppCount by remember { mutableIntStateOf(FocusPreferences.selectedAppCount()) }
         var protectionEnabled by remember { mutableStateOf(FocusPreferences.isProtectionEnabled()) }
@@ -120,6 +121,12 @@ fun App() {
                 onOpenBriefly = {
                     BlockedAppController.openForOneMinute(blockedPackage!!)
                     InterceptEvents.dismiss()
+                },
+            )
+            !welcomeSeen -> WelcomeScreen(
+                onDone = {
+                    SquishySettings.markWelcomeSeen()
+                    welcomeSeen = true
                 },
             )
             !onboardingComplete -> DistractionPicker { selected ->
@@ -264,7 +271,13 @@ private fun ProtectionSetupScreen(
                 Text("S", color = Sage, fontSize = 34.sp, fontWeight = FontWeight.Black)
             }
             Spacer(Modifier.height(30.dp))
-            Text("Turn on your pause.", color = Ink, fontSize = 31.sp, fontWeight = FontWeight.Light)
+            Text(
+                "Turn on your pause.",
+                color = Ink,
+                fontSize = 31.sp,
+                lineHeight = 37.sp,
+                fontWeight = FontWeight.Light,
+            )
             Spacer(Modifier.height(12.dp))
             Text(
                 "Android needs your permission once to detect the apps you picked. Squishflow never reads what you do inside them.",
@@ -303,7 +316,13 @@ private fun FocusInterventionScreen(
             Spacer(Modifier.height(18.dp))
             Text("CONSCIOUS PAUSE", color = Sage, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.8.sp)
             Spacer(Modifier.weight(0.45f))
-            Text("Did you open it on purpose?", color = Ink, fontSize = 29.sp, fontWeight = FontWeight.Light)
+            Text(
+                "Did you open it on purpose?",
+                color = Ink,
+                fontSize = 29.sp,
+                lineHeight = 35.sp,
+                fontWeight = FontWeight.Light,
+            )
             Spacer(Modifier.height(9.dp))
             Text(
                 "Squeeze Squishy three times to continue.",
@@ -680,7 +699,13 @@ private fun RescueModeScreen(
             Spacer(Modifier.weight(0.55f))
 
             if (selected == null) {
-                Text("Change your state.", color = Ink, fontSize = 34.sp, fontWeight = FontWeight.Light)
+                Text(
+                    "Change your state.",
+                    color = Ink,
+                    fontSize = 34.sp,
+                    lineHeight = 41.sp,
+                    fontWeight = FontWeight.Light,
+                )
                 Spacer(Modifier.height(10.dp))
                 Text(
                     "One real action buys back focus time.\nPick just one.",
@@ -712,7 +737,13 @@ private fun RescueModeScreen(
             } else {
                 val action = selected!!
                 if (action.title == "1 burpee") {
-                    Text("Camera verification", color = Ink, fontSize = 30.sp, fontWeight = FontWeight.Light)
+                    Text(
+                        "Camera verification",
+                        color = Ink,
+                        fontSize = 30.sp,
+                        lineHeight = 36.sp,
+                        fontWeight = FontWeight.Light,
+                    )
                     Spacer(Modifier.height(14.dp))
                     Text(
                         "We read your pose live to recognise a full burpee: standing, floor, standing.",
@@ -809,6 +840,7 @@ private fun PremiumIntroScreen(
                 "Focus should not take force.",
                 color = Color.White,
                 fontSize = 34.sp,
+                lineHeight = 41.sp,
                 fontWeight = FontWeight.Light,
             )
             Spacer(Modifier.height(12.dp))

@@ -20,6 +20,10 @@ expect object SquishySettings {
      */
     fun hasSeenConversionPrompt(): Boolean
     fun markConversionPromptSeen()
+
+    /** Whether the companion has introduced itself. */
+    fun hasSeenWelcome(): Boolean
+    fun markWelcomeSeen()
 }
 
 /** The material to start with, falling back to the free one for a first run. */

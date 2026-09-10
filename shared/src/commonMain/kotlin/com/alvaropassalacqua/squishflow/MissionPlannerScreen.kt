@@ -138,7 +138,13 @@ fun MissionBreakScreen(
         ) {
             Spacer(Modifier.weight(1f))
             Text("BREAK", color = sage, fontSize = 11.sp, fontWeight = FontWeight.Black, letterSpacing = 2.sp)
-            Text(block.title, color = ink, fontSize = 31.sp, fontWeight = FontWeight.Light)
+            Text(
+                block.title,
+                color = ink,
+                fontSize = 31.sp,
+                lineHeight = 37.sp,
+                fontWeight = FontWeight.Light,
+            )
             Spacer(Modifier.height(12.dp))
             Text("${block.minutes} minutes · screen-free if you can", color = ink.copy(alpha = .5f), fontSize = 14.sp)
             Spacer(Modifier.weight(1f))
@@ -171,7 +177,13 @@ fun SessionReflectionScreen(
             Box(Modifier.size(104.dp).background(sage.copy(alpha = .18f), RoundedCornerShape(38.dp)))
             Spacer(Modifier.height(28.dp))
             Text("Block complete", color = sage, fontSize = 11.sp, fontWeight = FontWeight.Black, letterSpacing = 1.8.sp)
-            Text(completedBlock.title, color = ink, fontSize = 28.sp, fontWeight = FontWeight.Light)
+            Text(
+                completedBlock.title,
+                color = ink,
+                fontSize = 28.sp,
+                lineHeight = 34.sp,
+                fontWeight = FontWeight.Light,
+            )
             Spacer(Modifier.height(12.dp))
             Text("How did that feel?", color = ink.copy(alpha = .55f), fontSize = 15.sp)
             Spacer(Modifier.height(26.dp))
