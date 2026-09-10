@@ -9,6 +9,7 @@ actual object SquishySettings {
     private const val FOCUSED = "squish_focused_minutes_v1"
     private const val COMPLETED = "squish_completed_blocks_v1"
     private const val FAILED = "squish_failed_blocks_v1"
+    private const val DECLINED = "squish_protection_declined_v1"
 
     actual fun loadMaterialKey(): String? =
         NSUserDefaults.standardUserDefaults.stringForKey(MATERIAL)
@@ -50,5 +51,12 @@ actual object SquishySettings {
         val defaults = NSUserDefaults.standardUserDefaults
         val key = if (completed) COMPLETED else FAILED
         defaults.setInteger(defaults.integerForKey(key) + 1, key)
+    }
+
+    actual fun hasDeclinedProtection(): Boolean =
+        NSUserDefaults.standardUserDefaults.boolForKey(DECLINED)
+
+    actual fun markProtectionDeclined() {
+        NSUserDefaults.standardUserDefaults.setBool(true, DECLINED)
     }
 }

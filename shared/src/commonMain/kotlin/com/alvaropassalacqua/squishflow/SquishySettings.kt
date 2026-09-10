@@ -43,6 +43,17 @@ expect object SquishySettings {
     fun completedBlocks(): Int
     fun failedBlocks(): Int
     fun recordBlock(completed: Boolean)
+
+    /**
+     * Whether the person declined the Accessibility setup.
+     *
+     * Held in memory this reset on every launch, so somebody who chose "timer
+     * only" was asked again every single time they opened the app. The header
+     * offers protection whenever they want it; the full-screen prompt should ask
+     * once.
+     */
+    fun hasDeclinedProtection(): Boolean
+    fun markProtectionDeclined()
 }
 
 /** Everything the journey screen reports, read once from storage. */

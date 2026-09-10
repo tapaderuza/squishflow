@@ -11,7 +11,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
@@ -91,7 +96,14 @@ fun MissionReviewScreen(
     val paper = Paper
     val sage = Sage
     Surface(Modifier.fillMaxSize(), color = paper) {
-        Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(26.dp)) {
+        Column(
+            Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .verticalScroll(rememberScrollState())
+                .padding(26.dp),
+        ) {
             TextButton(onClick = onBack, contentPadding = PaddingValues(0.dp)) { Text("← Change goal") }
             Spacer(Modifier.height(24.dp))
             Text("MISSION", color = sage, fontSize = 11.sp, fontWeight = FontWeight.Black, letterSpacing = 2.sp)
@@ -107,12 +119,26 @@ fun MissionReviewScreen(
                     Text((index + 1).toString().padStart(2, '0'), color = ink.copy(alpha = .35f), fontSize = 11.sp)
                     Spacer(Modifier.width(14.dp))
                     Text(block.title, Modifier.weight(1f), color = ink, fontSize = 14.sp)
-                    IconButton(onClick = { onDurationChanged(index, (block.minutes - 5).coerceAtLeast(5)) }) { Text("−") }
-                    Text("${block.minutes}m", color = if (block.kind == BlockKind.BREAK) ink.copy(alpha = .45f) else sage, fontWeight = FontWeight.Bold)
-                    IconButton(onClick = { onDurationChanged(index, (block.minutes + 5).coerceAtMost(60)) }) { Text("+") }
+                    IconButton(
+                        onClick = { onDurationChanged(index, (block.minutes - 5).coerceAtLeast(5)) },
+                        modifier = Modifier.semantics {
+                            contentDescription = "Shorten ${block.title}, currently ${block.minutes} minutes"
+                        },
+                    ) { Text("−") }
+                    Text(
+                        "${block.minutes}m",
+                        color = if (block.kind == BlockKind.BREAK) ink.copy(alpha = .45f) else sage,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    IconButton(
+                        onClick = { onDurationChanged(index, (block.minutes + 5).coerceAtMost(60)) },
+                        modifier = Modifier.semantics {
+                            contentDescription = "Lengthen ${block.title}, currently ${block.minutes} minutes"
+                        },
+                    ) { Text("+") }
                 }
             }
-            Spacer(Modifier.weight(1f))
+            Spacer(Modifier.height(28.dp))
             Button(
                 onClick = onStart,
                 modifier = Modifier.fillMaxWidth().height(58.dp),
@@ -127,36 +153,73 @@ fun MissionReviewScreen(
 fun MissionBreakScreen(
     block: MissionBlock,
     nextBlock: MissionBlock?,
+    material: SquishyMaterial,
+    reducedMotion: Boolean,
     onContinue: () -> Unit,
     onFinish: () -> Unit,
 ) {
-    val ink = PaperInk
-    val paper = Paper
-    val sage = Sage
-    Surface(Modifier.fillMaxSize(), color = paper) {
+    // The one screen on the main path where the companion used to vanish. A break
+    // is the calmest the app ever is, so it is the last place it should feel
+    // empty. There is deliberately no countdown here: the copy asks you to put
+    // the phone down, and a ticking clock would argue with that.
+    Surface(Modifier.fillMaxSize(), color = Paper) {
         Column(
-            Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(26.dp),
+            Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .padding(26.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Spacer(Modifier.weight(1f))
-            Text("BREAK", color = sage, fontSize = 11.sp, fontWeight = FontWeight.Black, letterSpacing = 2.sp)
+            Spacer(Modifier.weight(0.7f))
+
+            SquishyStage(
+                state = SquishyState.RELAXING,
+                progress = 0f,
+                accent = Sage,
+                material = material,
+                reducedMotion = reducedMotion,
+                onSquish = {},
+                stageSize = 230.dp,
+            )
+
+            Spacer(Modifier.height(18.dp))
+
+            Text("BREAK", color = Sage, fontSize = 11.sp, fontWeight = FontWeight.Black, letterSpacing = 2.sp)
             Text(
                 block.title,
-                color = ink,
+                color = PaperInk,
                 fontSize = 31.sp,
                 lineHeight = 37.sp,
                 fontWeight = FontWeight.Light,
+                textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(12.dp))
-            Text("${block.minutes} minutes · screen-free if you can", color = ink.copy(alpha = .5f), fontSize = 14.sp)
+            Text(
+                "${block.minutes} minutes · screen-free if you can",
+                color = PaperMuted,
+                fontSize = 14.sp,
+                textAlign = TextAlign.Center,
+            )
+
             Spacer(Modifier.weight(1f))
+
             Button(
                 onClick = onContinue,
                 modifier = Modifier.fillMaxWidth().height(58.dp),
                 shape = RoundedCornerShape(29.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = ink, contentColor = sage),
-            ) { Text(if (nextBlock == null) "Complete mission" else "Continue · ${nextBlock.title}", fontWeight = FontWeight.Bold) }
-            TextButton(onClick = onFinish) { Text("Finish for today", color = ink.copy(alpha = .5f)) }
+                colors = ButtonDefaults.buttonColors(containerColor = PaperInk, contentColor = Sage),
+            ) {
+                Text(
+                    // Block titles are user text and run long, so the label has to
+                    // be able to give up rather than push its own button apart.
+                    text = if (nextBlock == null) "Complete mission" else "Continue · ${nextBlock.title}",
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            TextButton(onClick = onFinish) { Text("Finish for today", color = PaperMuted) }
         }
     }
 }

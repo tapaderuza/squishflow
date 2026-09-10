@@ -63,7 +63,7 @@ fun App() {
         var onboardingComplete by remember { mutableStateOf(FocusPreferences.hasCompletedOnboarding()) }
         var protectedAppCount by remember { mutableIntStateOf(FocusPreferences.selectedAppCount()) }
         var protectionEnabled by remember { mutableStateOf(FocusPreferences.isProtectionEnabled()) }
-        var skipProtectionSetup by remember { mutableStateOf(false) }
+        var skipProtectionSetup by remember { mutableStateOf(SquishySettings.hasDeclinedProtection()) }
         var showPaywall by remember { mutableStateOf(false) }
         var showPremiumIntro by remember { mutableStateOf(false) }
         var showRescueMode by remember { mutableStateOf(false) }
@@ -185,7 +185,10 @@ fun App() {
             }
             Destination.ProtectionSetup -> ProtectionSetupScreen(
                 onEnable = FocusPreferences::openProtectionSettings,
-                onSkip = { skipProtectionSetup = true },
+                onSkip = {
+                    SquishySettings.markProtectionDeclined()
+                    skipProtectionSetup = true
+                },
             )
             Destination.Planner -> MissionPlannerScreen { planned ->
                 mission = planned
@@ -210,6 +213,8 @@ fun App() {
             Destination.Break -> MissionBreakScreen(
                 block = mission!!.blocks[activeBlockIndex],
                 nextBlock = mission!!.blocks.getOrNull(activeBlockIndex + 1),
+                material = material,
+                reducedMotion = reducedMotion,
                 onContinue = {
                     val next = activeBlockIndex + 1
                     if (next > mission!!.blocks.lastIndex) {

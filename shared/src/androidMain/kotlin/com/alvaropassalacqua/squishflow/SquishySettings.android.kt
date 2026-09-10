@@ -10,6 +10,7 @@ actual object SquishySettings {
     private const val FOCUSED = "focused_minutes_v1"
     private const val COMPLETED = "completed_blocks_v1"
     private const val FAILED = "failed_blocks_v1"
+    private const val DECLINED = "protection_declined_v1"
 
     private fun prefs() = FocusPreferences.contextOrNull()
         ?.getSharedPreferences(FILE, Context.MODE_PRIVATE)
@@ -48,5 +49,11 @@ actual object SquishySettings {
         val store = prefs() ?: return
         val key = if (completed) COMPLETED else FAILED
         store.edit().putInt(key, store.getInt(key, 0) + 1).apply()
+    }
+
+    actual fun hasDeclinedProtection(): Boolean = prefs()?.getBoolean(DECLINED, false) == true
+
+    actual fun markProtectionDeclined() {
+        prefs()?.edit()?.putBoolean(DECLINED, true)?.apply()
     }
 }
