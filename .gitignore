@@ -40,3 +40,6 @@ service-account*.json
 # OS
 .DS_Store
 Thumbs.db
+
+# Local build transcripts
+build_check.log
