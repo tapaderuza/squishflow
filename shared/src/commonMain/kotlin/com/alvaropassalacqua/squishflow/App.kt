@@ -1,5 +1,6 @@
 package com.alvaropassalacqua.squishflow
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -57,6 +58,7 @@ fun App() {
         val blockedPackage by InterceptEvents.blockedPackage.collectAsStateWithLifecycle()
         val selectionRequest by SelectionEvents.requests.collectAsStateWithLifecycle()
         val lifecycleOwner = LocalLifecycleOwner.current
+        val reducedMotion = rememberReducedMotion()
         var welcomeSeen by remember { mutableStateOf(SquishySettings.hasSeenWelcome()) }
         var onboardingComplete by remember { mutableStateOf(FocusPreferences.hasCompletedOnboarding()) }
         var protectedAppCount by remember { mutableIntStateOf(FocusPreferences.selectedAppCount()) }
@@ -136,8 +138,31 @@ fun App() {
             onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
         }
 
-        when {
-            blockedPackage != null -> FocusInterventionScreen(
+        val destination = when {
+            blockedPackage != null -> Destination.Intervention
+            !welcomeSeen -> Destination.Welcome
+            !onboardingComplete -> Destination.ChooseDistractions
+            !protectionEnabled && !skipProtectionSetup -> Destination.ProtectionSetup
+            mission == null -> Destination.Planner
+            !missionAccepted -> Destination.MissionReview
+            mission!!.blocks.getOrNull(activeBlockIndex)?.kind == BlockKind.BREAK -> Destination.Break
+            showJourney -> Destination.Journey
+            showRescueMode -> Destination.Rescue
+            showReflection -> Destination.Reflection
+            showPaywall -> Destination.Paywall
+            showPremiumIntro -> Destination.PremiumIntro
+            else -> Destination.Focus
+        }
+
+        AnimatedContent(
+            targetState = destination,
+            transitionSpec = {
+                transitionFor(from = initialState, to = targetState, reducedMotion = reducedMotion)
+            },
+            label = "screen",
+        ) { current ->
+            when (current) {
+            Destination.Intervention -> FocusInterventionScreen(
                 packageName = blockedPackage!!,
                 onReturn = InterceptEvents::dismiss,
                 onOpenBriefly = {
@@ -145,29 +170,29 @@ fun App() {
                     InterceptEvents.dismiss()
                 },
             )
-            !welcomeSeen -> WelcomeScreen(
+            Destination.Welcome -> WelcomeScreen(
                 onDone = {
                     SquishySettings.markWelcomeSeen()
                     welcomeSeen = true
                 },
             )
-            !onboardingComplete -> DistractionPicker { selected ->
+            Destination.ChooseDistractions -> DistractionPicker { selected ->
                 FocusPreferences.completeOnboarding(selected)
                 protectedAppCount = selected.size
                 protectionEnabled = FocusPreferences.isProtectionEnabled()
                 skipProtectionSetup = false
                 onboardingComplete = true
             }
-            !protectionEnabled && !skipProtectionSetup -> ProtectionSetupScreen(
+            Destination.ProtectionSetup -> ProtectionSetupScreen(
                 onEnable = FocusPreferences::openProtectionSettings,
                 onSkip = { skipProtectionSetup = true },
             )
-            mission == null -> MissionPlannerScreen { planned ->
+            Destination.Planner -> MissionPlannerScreen { planned ->
                 mission = planned
                 missionAccepted = false
                 activeBlockIndex = 0
             }
-            !missionAccepted -> MissionReviewScreen(
+            Destination.MissionReview -> MissionReviewScreen(
                 mission = mission!!,
                 onBack = { mission = null },
                 onDurationChanged = { index, minutes ->
@@ -182,7 +207,7 @@ fun App() {
                     missionAccepted = true
                 },
             )
-            mission!!.blocks.getOrNull(activeBlockIndex)?.kind == BlockKind.BREAK -> MissionBreakScreen(
+            Destination.Break -> MissionBreakScreen(
                 block = mission!!.blocks[activeBlockIndex],
                 nextBlock = mission!!.blocks.getOrNull(activeBlockIndex + 1),
                 onContinue = {
@@ -198,23 +223,28 @@ fun App() {
                 },
                 onFinish = { mission = null; missionAccepted = false },
             )
-            showJourney -> JourneyScreen(
+            Destination.Journey -> JourneyScreen(
                 stats = lifetime,
                 selected = material,
                 isPremium = isPremium,
                 onBack = { showJourney = false },
                 onPremium = { showJourney = false; showPremiumIntro = true },
             )
-            showRescueMode -> RescueModeScreen(
+            Destination.Rescue -> RescueModeScreen(
                 onDismiss = { showRescueMode = false },
                 onReward = { seconds ->
                     timerViewModel.applyTimeReward(seconds)
                     showRescueMode = false
                 },
             )
-            showReflection -> SessionReflectionScreen(
+            Destination.Reflection -> SessionReflectionScreen(
                 completedBlock = mission!!.blocks.getOrNull(activeBlockIndex)
                     ?: MissionBlock("Focus session", uiState.selectedMinutes),
+                bankedMinutes = uiState.totalSeconds / 60,
+                material = material,
+                focusedMinutes = lifetime.focusedMinutes,
+                isPremium = isPremium,
+                reducedMotion = reducedMotion,
                 onRated = { feeling ->
                     val next = (activeBlockIndex + 1).takeIf { it <= mission!!.blocks.lastIndex }
                     showReflection = false
@@ -235,7 +265,7 @@ fun App() {
                     missionAccepted = false
                 },
             )
-            showPaywall -> {
+            Destination.Paywall -> {
                 val options = remember {
                     PaywallOptions(dismissRequest = { showPaywall = false }) {
                         shouldDisplayDismissButton = true
@@ -243,20 +273,21 @@ fun App() {
                 }
                 Paywall(options)
             }
-            showPremiumIntro -> PremiumIntroScreen(
+            Destination.PremiumIntro -> PremiumIntroScreen(
                 onDismiss = { showPremiumIntro = false },
                 onSeePlans = {
                     showPremiumIntro = false
                     showPaywall = true
                 },
             )
-            else -> FocusScreen(
+            Destination.Focus -> FocusScreen(
                 uiState = uiState,
                 missionBlock = mission!!.blocks.getOrNull(activeBlockIndex),
                 material = material,
                 isPremium = isPremium,
                 focusedMinutes = lifetime.focusedMinutes,
                 completedBlocks = lifetime.completedBlocks,
+                reducedMotion = reducedMotion,
                 onMaterialSelected = {
                     material = it
                     SquishySettings.saveMaterialKey(it.name)
@@ -275,6 +306,7 @@ fun App() {
                     onboardingComplete = false
                 },
             )
+            }
         }
     }
 }
@@ -397,6 +429,7 @@ private fun FocusScreen(
     isPremium: Boolean,
     focusedMinutes: Int,
     completedBlocks: Int,
+    reducedMotion: Boolean,
     onMaterialSelected: (SquishyMaterial) -> Unit,
     onDurationSelected: (Int) -> Unit,
     onPrimaryAction: () -> Unit,
@@ -408,7 +441,6 @@ private fun FocusScreen(
 ) {
     var tensionReleased by remember { mutableIntStateOf(0) }
     var trialMaterial by remember { mutableStateOf<SquishyMaterial?>(null) }
-    val reducedMotion = rememberReducedMotion()
 
     LaunchedEffect(trialMaterial) {
         val trialling = trialMaterial ?: return@LaunchedEffect

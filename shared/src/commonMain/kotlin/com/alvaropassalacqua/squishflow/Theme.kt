@@ -22,6 +22,19 @@ internal val Coral = Color(0xFFFF806C)
 internal val Lavender = Color(0xFFC5A8F2)
 internal val SoftWhite = Color(0xFF171A18)
 
+/**
+ * The paper half.
+ *
+ * Planning and reflection deliberately invert the focus screen's near-black
+ * ground: deciding what to do is the calm, daylight half of the product, and
+ * holding attention is the dark one. These were previously redeclared by hand at
+ * the top of four different composables, which is exactly how two halves of one
+ * palette drift apart.
+ */
+internal val Paper = Color(0xFFF2F0E9)
+internal val PaperInk = Color(0xFF101310)
+internal val PaperMuted = Color(0x8C101310)
+
 /** Body fill for each state, brightest at the centre of the radial gradient. */
 internal fun SquishyState.bodyTint(): Color = when (this) {
     SquishyState.TENSE -> Color(0xFFFF806C)

@@ -9,6 +9,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -23,9 +25,9 @@ fun MissionPlannerScreen(
     var error by remember { mutableStateOf<String?>(null) }
     var planning by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    val ink = Color(0xFF101310)
-    val paper = Color(0xFFF2F0E9)
-    val sage = Color(0xFF8DD6AA)
+    val ink = PaperInk
+    val paper = Paper
+    val sage = Sage
 
     Surface(Modifier.fillMaxSize(), color = paper) {
         Column(
@@ -85,9 +87,9 @@ fun MissionReviewScreen(
     onDurationChanged: (Int, Int) -> Unit,
     onStart: () -> Unit,
 ) {
-    val ink = Color(0xFF101310)
-    val paper = Color(0xFFF2F0E9)
-    val sage = Color(0xFF8DD6AA)
+    val ink = PaperInk
+    val paper = Paper
+    val sage = Sage
     Surface(Modifier.fillMaxSize(), color = paper) {
         Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(26.dp)) {
             TextButton(onClick = onBack, contentPadding = PaddingValues(0.dp)) { Text("← Change goal") }
@@ -128,9 +130,9 @@ fun MissionBreakScreen(
     onContinue: () -> Unit,
     onFinish: () -> Unit,
 ) {
-    val ink = Color(0xFF101310)
-    val paper = Color(0xFFF2F0E9)
-    val sage = Color(0xFF8DD6AA)
+    val ink = PaperInk
+    val paper = Paper
+    val sage = Sage
     Surface(Modifier.fillMaxSize(), color = paper) {
         Column(
             Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(26.dp),
@@ -162,31 +164,72 @@ fun MissionBreakScreen(
 @Composable
 fun SessionReflectionScreen(
     completedBlock: MissionBlock,
+    /**
+     * Minutes actually banked, which is not always the block's planned length:
+     * the duration picker can override a block before it starts, and reporting
+     * the plan instead of the run would credit focus that never happened.
+     */
+    bankedMinutes: Int,
+    material: SquishyMaterial,
+    focusedMinutes: Int,
+    isPremium: Boolean,
+    reducedMotion: Boolean,
     onRated: (SessionFeeling) -> Unit,
     onFinish: () -> Unit,
 ) {
-    val ink = Color(0xFF101310)
-    val paper = Color(0xFFF2F0E9)
-    val sage = Color(0xFF8DD6AA)
-    Surface(Modifier.fillMaxSize(), color = paper) {
+    // Finishing a block is the emotional peak of the product, and it used to be
+    // marked with an empty green rectangle. What somebody has actually just
+    // earned is a settled companion and a step along the shelf, so show both.
+    val nextToEarn = if (isPremium) null else nextMaterialToEarn(focusedMinutes)
+
+    Surface(Modifier.fillMaxSize(), color = Paper) {
         Column(
-            Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(26.dp),
+            Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .padding(horizontal = 26.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Spacer(Modifier.weight(.7f))
-            Box(Modifier.size(104.dp).background(sage.copy(alpha = .18f), RoundedCornerShape(38.dp)))
-            Spacer(Modifier.height(28.dp))
-            Text("Block complete", color = sage, fontSize = 11.sp, fontWeight = FontWeight.Black, letterSpacing = 1.8.sp)
+            Spacer(Modifier.weight(.45f))
+
+            SquishyStage(
+                state = SquishyState.RELAXING,
+                progress = 1f,
+                accent = Sage,
+                material = material,
+                reducedMotion = reducedMotion,
+                onSquish = {},
+                stageSize = 236.dp,
+            )
+
+            Spacer(Modifier.height(14.dp))
+
+            Text(
+                "BLOCK COMPLETE",
+                color = Sage,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 1.8.sp,
+            )
+            Spacer(Modifier.height(6.dp))
             Text(
                 completedBlock.title,
-                color = ink,
-                fontSize = 28.sp,
-                lineHeight = 34.sp,
+                color = PaperInk,
+                fontSize = 26.sp,
+                lineHeight = 32.sp,
                 fontWeight = FontWeight.Light,
+                textAlign = TextAlign.Center,
             )
-            Spacer(Modifier.height(12.dp))
-            Text("How did that feel?", color = ink.copy(alpha = .55f), fontSize = 15.sp)
-            Spacer(Modifier.height(26.dp))
+
+            Spacer(Modifier.height(16.dp))
+
+            EarnedBanner(minutes = bankedMinutes, next = nextToEarn, focusedMinutes = focusedMinutes)
+
+            Spacer(Modifier.weight(.5f))
+
+            Text("How did that feel?", color = PaperMuted, fontSize = 15.sp)
+            Spacer(Modifier.height(16.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                 listOf(
                     SessionFeeling.EASY to "Easy",
@@ -197,11 +240,54 @@ fun SessionReflectionScreen(
                         onClick = { onRated(feeling) },
                         modifier = Modifier.weight(1f).height(52.dp),
                         shape = RoundedCornerShape(20.dp),
-                    ) { Text(label, fontSize = 12.sp) }
+                    ) { Text(label, fontSize = 12.sp, color = PaperInk) }
                 }
             }
-            Spacer(Modifier.weight(1f))
-            TextButton(onClick = onFinish) { Text("Finish for today", color = ink.copy(alpha = .5f)) }
+
+            Spacer(Modifier.weight(.35f))
+            TextButton(onClick = onFinish) { Text("Finish for today", color = PaperMuted) }
         }
+    }
+}
+
+/** The minutes just banked, and what they moved you closer to. */
+@Composable
+private fun EarnedBanner(minutes: Int, next: SquishyMaterial?, focusedMinutes: Int) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = "+$minutes min of focus banked",
+            color = PaperInk.copy(alpha = 0.62f),
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+        )
+        if (next == null) return@Column
+
+        val remaining = (next.unlockMinutes - focusedMinutes).coerceAtLeast(0)
+        Spacer(Modifier.height(10.dp))
+        Box(
+            Modifier
+                .fillMaxWidth(0.62f)
+                .height(4.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(PaperInk.copy(alpha = 0.10f)),
+        ) {
+            Box(
+                Modifier
+                    .fillMaxWidth((focusedMinutes.toFloat() / next.unlockMinutes).coerceIn(0f, 1f))
+                    .height(4.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(Sage),
+            )
+        }
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = if (remaining == 0) {
+                "${next.displayName} unlocked"
+            } else {
+                "${next.displayName} · ${formatRemaining(remaining)}"
+            },
+            color = PaperMuted,
+            fontSize = 12.sp,
+        )
     }
 }
