@@ -4,6 +4,16 @@ import FamilyControls
 import ManagedSettings
 import shared
 
+/// The shared palette, matching Theme.kt on the Kotlin side.
+enum Palette {
+    static let ground = Color(red: 0.047, green: 0.055, blue: 0.051)   // Cream
+    static let ink = Color(red: 0.949, green: 0.941, blue: 0.914)      // Ink
+    static let muted = Color(red: 0.588, green: 0.600, blue: 0.569)    // Muted
+    static let sage = Color(red: 0.553, green: 0.839, blue: 0.667)     // Sage
+    static let coral = Color(red: 1.000, green: 0.502, blue: 0.424)    // Coral
+    static let onLight = Color(red: 0.082, green: 0.090, blue: 0.075)  // OnLight
+}
+
 struct ComposeView: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIViewController {
         Main_iosKt.MainViewController()
@@ -67,7 +77,7 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            Color(red: 0.047, green: 0.055, blue: 0.051).ignoresSafeArea()
+            Palette.ground.ignoresSafeArea()
 
             if protection.showSquishy || openOnCompanion {
                 ComposeView()
@@ -87,22 +97,22 @@ struct ContentView: View {
             Text("SQUISHFLOW")
                 .font(.system(size: 16, weight: .black))
                 .tracking(2.2)
-                .foregroundStyle(Color(red: 0.95, green: 0.94, blue: 0.91))
+                .foregroundStyle(Palette.ink)
 
             Text("YOUR FOCUS COMPANION")
                 .font(.system(size: 9, weight: .bold))
                 .tracking(1.7)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Palette.muted)
 
             Spacer()
 
             Text("What do you want\nto protect today?")
                 .font(.system(size: 38, weight: .light))
-                .foregroundStyle(Color(red: 0.95, green: 0.94, blue: 0.91))
+                .foregroundStyle(Palette.ink)
 
             Text("Pick apps, categories or sites. iOS keeps the choice private: Squishflow never learns which ones you picked.")
                 .font(.system(size: 15))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Palette.muted)
                 .lineSpacing(5)
                 .padding(.top, 16)
 
@@ -116,7 +126,7 @@ struct ContentView: View {
                         Text("\(protection.selectedCount)")
                             .fontWeight(.bold)
                     }
-                    .foregroundStyle(Color(red: 0.55, green: 0.84, blue: 0.67))
+                    .foregroundStyle(Palette.sage)
                     .padding(18)
                     .background(Color.white.opacity(0.055))
                     .clipShape(RoundedRectangle(cornerRadius: 20))
@@ -129,7 +139,7 @@ struct ContentView: View {
             if let message = protection.errorMessage {
                 Text(message)
                     .font(.system(size: 12))
-                    .foregroundStyle(Color(red: 1, green: 0.50, blue: 0.42))
+                    .foregroundStyle(Palette.coral)
                     .padding(.bottom, 14)
             }
 
@@ -144,8 +154,8 @@ struct ContentView: View {
                     .font(.system(size: 15, weight: .bold))
                     .frame(maxWidth: .infinity)
                     .frame(height: 58)
-                    .foregroundStyle(Color(red: 0.07, green: 0.08, blue: 0.07))
-                    .background(Color(red: 0.95, green: 0.94, blue: 0.91))
+                    .foregroundStyle(Palette.onLight)
+                    .background(Palette.ink)
                     .clipShape(Capsule())
             }
 
@@ -154,14 +164,15 @@ struct ContentView: View {
             } label: {
                 Text("Not now  \u{00B7}  timer only")
                     .font(.system(size: 13))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Palette.muted)
                     .frame(maxWidth: .infinity)
                     .padding(.top, 16)
             }
+            .buttonStyle(.plain)
 
             Text("Authorisation uses Face ID or Touch ID and can be revoked in Settings.")
                 .font(.system(size: 11))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Palette.muted)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
                 .padding(.top, 13)

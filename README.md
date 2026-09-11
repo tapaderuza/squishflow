@@ -2,6 +2,8 @@
 
 **A focus timer you can squeeze.** Kotlin Multiplatform, one shared Compose UI, Android and iOS.
 
+[![iOS](https://github.com/tapaderuza/squishflow/actions/workflows/ios.yml/badge.svg)](https://github.com/tapaderuza/squishflow/actions/workflows/ios.yml)
+
 Rigid Pomodoro apps ask you to be disciplined at exactly the moment you have no discipline left. Squishflow puts a soft body between you and the work: you tell it what you want to finish, it hands back blocks short enough to believe, and while you sit with the tension you can push your thumb into Squishy and feel it push back.
 
 <p align="center">
@@ -159,6 +161,24 @@ Android, from Windows, macOS or Linux:
 iOS targets are declared only on macOS, so the project builds on a Windows machine instead of failing inside the Kotlin/Native compiler. On a Mac, open `iosApp/iosApp.xcodeproj` after running the same command.
 
 Before any store submission: replace the RevenueCat test key with the platform keys, configure the offerings, sign the release builds, and run sandbox purchases on physical devices. `docs/PRODUCTION_READINESS.md` tracks that gate and is deliberately not all ticked.
+
+## It runs on iPhone too
+
+<p align="center">
+  <img src="evidence/ios/ios-welcome.png" width="30%" alt="Squishflow on an iPhone simulator: the welcome screen">
+  <img src="evidence/ios/ios-entry.png" width="30%" alt="The iOS entry screen, before the companion">
+</p>
+
+The project is developed on Windows and the only Mac available runs Monterey,
+which stops at Xcode 14 and cannot target a current iPhone. So the iOS build
+lives in CI: a hosted Mac compiles the shared Kotlin for Apple, builds the Xcode
+project, boots a simulator, installs the app and photographs it. Every push to
+`main` produces those captures as artifacts — the proof that one Compose codebase
+is running on both platforms, not a claim.
+
+The shared Kotlin compiled for iOS on the first attempt. Haptics, audio, settings
+and reduced-motion detection each have an Apple implementation behind the same
+`expect` declaration the Android side uses.
 
 ## First run
 
