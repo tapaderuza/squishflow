@@ -647,11 +647,13 @@ private fun Header(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.End,
     ) {
-        QuietAction(
-            label = if (protectedAppCount == 0) "Protect apps" else "$protectedAppCount protected",
-            onClick = onManageApps,
-        )
-        Spacer(Modifier.width(18.dp))
+        if (supportsAppProtection) {
+            QuietAction(
+                label = if (protectedAppCount == 0) "Protect apps" else "$protectedAppCount protected",
+                onClick = onManageApps,
+            )
+            Spacer(Modifier.width(18.dp))
+        }
         QuietAction(
             label = if (completedBlocks == 1) "1 block" else "$completedBlocks blocks",
             onClick = onJourney,
@@ -918,9 +920,11 @@ private fun PremiumIntroScreen(
             )
             Spacer(Modifier.height(38.dp))
             PremiumBenefit("01", "Every body, now", "The four you are working towards, without the wait.")
-            PremiumBenefit("02", "Protect every app", "Free protects $FREE_PROTECTED_APPS. Pro has no limit.")
-            PremiumBenefit("03", "Keep what you earn", "Let Pro lapse and every body you focused for stays.")
-            PremiumBenefit("04", "No ads, ever, for anyone", "Subscriptions are the only thing this app sells.")
+            if (supportsAppProtection) {
+                PremiumBenefit("02", "Protect every app", "Free protects $FREE_PROTECTED_APPS. Pro has no limit.")
+            }
+            PremiumBenefit(if (supportsAppProtection) "03" else "02", "Keep what you earn", "Let Pro lapse and every body you focused for stays.")
+            PremiumBenefit(if (supportsAppProtection) "04" else "03", "No ads, ever, for anyone", "Subscriptions are the only thing this app sells.")
             Spacer(Modifier.weight(1f))
             Button(
                 onClick = onSeePlans,

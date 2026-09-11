@@ -26,6 +26,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+actual val supportsAppProtection: Boolean = true
+
 actual object FocusPreferences {
     private const val FILE = "squish_focus"
     private const val ONBOARDED = "onboarded"

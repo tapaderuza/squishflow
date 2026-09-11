@@ -1,8 +1,14 @@
-# iOS Family Controls release setup
+# iOS Family Controls — parked until Apple grants the entitlement
 
-The implementation sources are already in this repository. Apple requires these
-capabilities and extension targets to be created and signed in Xcode after approving
-the distribution entitlement.
+The iPhone build ships as timer + companion. Per-app protection needs the
+`com.apple.developer.family-controls` distribution entitlement, which Apple
+grants on request (typically days to weeks) and which a free Apple ID cannot
+use at all. The SwiftUI setup screen, the entitlement and the two shield
+extensions were removed from the app in September 2026 so a store build could
+be uploaded; the earlier implementation is in git history (commit before
+"Ship the iPhone app as timer and companion"). When the entitlement arrives:
+restore that code, set `supportsAppProtection` to true on iOS, and follow the
+steps below.
 
 ## Apple Developer portal
 

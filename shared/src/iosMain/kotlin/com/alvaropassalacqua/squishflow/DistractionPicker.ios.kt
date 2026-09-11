@@ -13,9 +13,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import platform.Foundation.NSUserDefaults
 
+actual val supportsAppProtection: Boolean = false
+
 actual object FocusPreferences {
-    actual fun hasCompletedOnboarding(): Boolean =
-        NSUserDefaults.standardUserDefaults.boolForKey("squish_onboarded")
+    // Nothing to onboard: without Family Controls there is no list to pick from.
+    actual fun hasCompletedOnboarding(): Boolean = true
 
     actual fun selectedAppCount(): Int =
         (NSUserDefaults.standardUserDefaults.arrayForKey("squish_selected_categories")?.size ?: 0).toInt()

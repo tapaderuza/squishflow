@@ -2,6 +2,15 @@ package com.alvaropassalacqua.squishflow
 
 import androidx.compose.runtime.Composable
 
+/**
+ * Whether this platform can put Squishy between a person and an app.
+ *
+ * Android can, through the accessibility service. iPhone cannot until Apple
+ * grants the Family Controls distribution entitlement, and until then the
+ * app must not show a "Protect apps" control that protects nothing.
+ */
+expect val supportsAppProtection: Boolean
+
 expect object FocusPreferences {
     fun hasCompletedOnboarding(): Boolean
     fun completeOnboarding(selectedPackages: List<String>)
