@@ -33,7 +33,7 @@ final class ShieldActionExtension: ShieldActionDelegate {
         case .primaryButtonPressed:
             completionHandler(.close)
         case .secondaryButtonPressed:
-            UserDefaults(suiteName: "group.com.squishfocus.shared")?
+            UserDefaults(suiteName: "group.com.alvaropassalacqua.squishflow")?
                 .set(true, forKey: "squish_access_requested")
             completionHandler(.defer)
         @unknown default:

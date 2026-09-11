@@ -34,7 +34,7 @@ final class FocusProtectionModel: ObservableObject {
             isAuthorized = AuthorizationCenter.shared.authorizationStatus == .approved
             if isAuthorized { isPickerPresented = true }
         } catch {
-            errorMessage = "No se pudo activar Screen Time. Revisa Family Controls en Ajustes."
+            errorMessage = "Could not turn on Screen Time. Check Family Controls in Settings."
         }
     }
 
@@ -77,23 +77,23 @@ struct ContentView: View {
 
     private var setup: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("SQUISH.")
+            Text("SQUISHFLOW")
                 .font(.system(size: 16, weight: .black))
                 .tracking(2.2)
                 .foregroundStyle(Color(red: 0.95, green: 0.94, blue: 0.91))
 
-            Text("FOCUS RESET")
+            Text("YOUR FOCUS COMPANION")
                 .font(.system(size: 9, weight: .bold))
                 .tracking(1.7)
                 .foregroundStyle(.secondary)
 
             Spacer()
 
-            Text("¿Qué quieres\nproteger hoy?")
+            Text("What do you want\nto protect today?")
                 .font(.system(size: 38, weight: .light))
                 .foregroundStyle(Color(red: 0.95, green: 0.94, blue: 0.91))
 
-            Text("Elige aplicaciones, categorías o webs. iOS mantiene tu selección privada: Squishflow no puede ver qué apps has escogido.")
+            Text("Pick apps, categories or sites. iOS keeps the choice private: Squishflow never learns which ones you picked.")
                 .font(.system(size: 15))
                 .foregroundStyle(.secondary)
                 .lineSpacing(5)
@@ -104,7 +104,7 @@ struct ContentView: View {
                     protection.isPickerPresented = true
                 } label: {
                     HStack {
-                        Text("Selección protegida")
+                        Text("Protected selection")
                         Spacer()
                         Text("\(protection.selectedCount)")
                             .fontWeight(.bold)
@@ -133,7 +133,7 @@ struct ContentView: View {
                     protection.beginFocus()
                 }
             } label: {
-                Text(protection.selectedCount == 0 ? "Elegir aplicaciones" : "Empezar con Squishy")
+                Text(protection.selectedCount == 0 ? "Choose apps" : "Start with Squishy")
                     .font(.system(size: 15, weight: .bold))
                     .frame(maxWidth: .infinity)
                     .frame(height: 58)
@@ -142,7 +142,17 @@ struct ContentView: View {
                     .clipShape(Capsule())
             }
 
-            Text("La autorización se realiza con Face ID o Touch ID y puede revocarse en Ajustes.")
+            Button {
+                protection.showSquishy = true
+            } label: {
+                Text("Not now  \u{00B7}  timer only")
+                    .font(.system(size: 13))
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 16)
+            }
+
+            Text("Authorisation uses Face ID or Touch ID and can be revoked in Settings.")
                 .font(.system(size: 11))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
