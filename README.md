@@ -32,11 +32,13 @@ The renderer passes a Catmull-Rom curve exactly through the simulated samples, s
 
 ### It has a face that does things nobody asked it to
 
-A companion that only moves when touched is a control, not a character. Squishy blinks on an irregular rhythm — a fixed interval reads as a metronome — and its gaze drifts a few pixels every few seconds, which is what makes eyes read as thinking rather than painted on. The eyes narrow with how hard you are pressing. Under reduced motion all of it stops, because none of it is movement you asked for.
+A companion that only moves when touched is a control, not a character. Squishy opens its eyes when a screen appears rather than arriving with them open. It blinks on an irregular rhythm — a fixed interval reads as a metronome — and its gaze drifts a few pixels every few seconds, which is what makes eyes read as thinking rather than painted on. The eyes narrow with how hard you are pressing. Left alone for half a minute or so it stretches once and relaxes: the second mode of the ring, kept distinct from the three-lobed completion pulse so it reads as a sigh rather than as excitement. In the last minute of a block the breath it has been slowing for twenty minutes picks up again. Under reduced motion all of it stops, because none of it is movement you asked for.
 
 ### It has a voice, and no audio files
 
 `SquishSynth` builds every squelch from noise through a resonant state-variable filter — cutoff sweeping *down* for compression and *up* for the rebound — over a low sine that gives the body its mass. Release loudness follows how deeply the finger was pressing. Generating rather than sampling means the sound cannot drift from the shape, and the waveform is bit-identical on Android and iOS because the noise is seeded.
+
+Each material's voice is derived from its solver constants rather than authored: stiffness sets the pitch (as its square root, so twice as stiff is a fifth higher, not an octave), damping sets the length, coupling sets the wetness. A stress ball gets one dry burst; a water balloon squelches in four stages; a bubble rings for close to half a second on its tone. Tests pin the direction of each mapping, so making the foam stiffer makes it higher and nothing has to be retuned by hand.
 
 Tests cannot tell you whether a synth sounds *good*, so they assert what fails silently: clipping, DC offset, filter runaway, clicks at the buffer edges. For the part only ears can judge, the unit tests write auditionable WAVs to `shared/build/audio-preview/`.
 
@@ -99,6 +101,8 @@ The project is developed on Windows and the only Mac available runs Monterey, wh
 
 **The copy is tested.** No exclamation marks, because enthusiasm raises the cost of starting. No failure or streak language, because an abandoned block is a thing that happened, not a verdict. Nothing longer than one line. The rules are assertions in `SquishyVoiceTest`.
 
+**It has a position on streaks.** The app remembers the day it was last opened and nothing else about absence. Three or more days away and the idle line becomes *Been a while. Nothing to catch up on.* — the moment a streak app shows a broken chain is the moment this one says the gap does not count.
+
 **The icon is the physics.** `tools/make_icon.py` carries a small port of the solver; the outline is the real soft-body silhouette at the peak of a held press, because a settled body is just a circle.
 
 <p align="center">
@@ -138,7 +142,7 @@ Before any store submission: replace the RevenueCat test key with the platform k
 | `shared/src/commonMain/.../Navigation.kt` | The motion grammar. |
 | `shared/src/commonMain/.../App.kt` | Screens and routing. |
 | `shared/src/commonMain/.../Theme.kt` | Every colour in the product, named once. |
-| `shared/src/commonTest/` | 84 tests: physics, materials, planner, voice, synth, access. |
+| `shared/src/commonTest/` | 109 tests: physics, materials, planner, voice, synth, access, persistence. |
 | `tools/` | Icon generation, submission screenshots, the iOS walkthrough. |
 | `submission/` | Devpost description, video shot list, icon and screenshots at the required sizes. |
 | `docs/` | Product decisions, production gate, privacy draft. |

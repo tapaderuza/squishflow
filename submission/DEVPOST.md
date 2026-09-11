@@ -26,9 +26,11 @@ Squishflow puts a soft body between you and the work.
 
 You tell it what you want to finish. It hands back blocks short enough to believe — the first one deliberately shorter, because starting is the expensive part of focus, not continuing. Then, while you sit with the tension, you push your thumb into Squishy and it pushes back.
 
-**The squishy is a physics model, not an animation.** The silhouette is a ring of 26 coupled radial samples with real stiffness, damping and neighbour coupling. A press opens a dent exactly under your finger, the wave travels around the surface, and volume conservation means denting one side bulges the other. It has haptics tied to pressure, a synthesised voice (no audio files ship — every squelch is generated from the same numbers that drive the shape), and it blinks and looks around when you are not touching it.
+**The squishy is a physics model, not an animation.** The silhouette is a ring of 26 coupled radial samples with real stiffness, damping and neighbour coupling. A press opens a dent exactly under your finger, the wave travels around the surface, and volume conservation means denting one side bulges the other. It has haptics tied to pressure and a synthesised voice: no audio files ship, and every material's squelch is derived from the same three numbers that drive its shape — stiffness sets the pitch, damping the length, coupling the wetness — so a stress ball snaps high and dry and a bubble rings. Left alone, it wakes up, blinks on an irregular rhythm, looks around, and occasionally stretches.
 
-**It does the thing it asks of you.** Over a focus block the body softens and stops wobbling. The same drag gives about a fifth further at minute twenty-four than at minute one. A session visibly has depth, not just a countdown.
+**It does the thing it asks of you.** Over a focus block the body softens and stops wobbling. The same drag gives about a fifth further at minute twenty-four than at minute one. Then, in the last sixty seconds, it breaks the pattern: the breath quickens and the line changes to *Almost banked.* A session visibly has depth, not just a countdown.
+
+**It has a position on streaks.** Come back after three days away and it says *Been a while. Nothing to catch up on.* That is the moment a streak app shows a broken chain; this one says the gap does not count — and that sentence, like every line the app says, is held to rules by unit tests: no exclamation marks, no failure language, nothing longer than one line.
 
 ### Monetisation: focus is the currency
 
@@ -38,7 +40,7 @@ A focus app that locks its rewards behind a card is working against the thing it
 
 Two consequences, both unit-tested: a lapsed subscription keeps everything you earned, and a locked body shows how close you are rather than a padlock. And because only one body is free at the start, tapping a locked one hands it to you for six seconds before the paywall appears. A list of names cannot communicate what dense foam feels like.
 
-The materials are not reskins. A test asserts that a stress ball settles in fewer frames than jelly and a water balloon in more. If two of them ever came to rest at the same rate, the entitlement would be selling paint.
+The materials are not reskins. A test asserts that a stress ball settles in fewer frames than jelly and a water balloon in more, and another that it sounds higher and shorter. If two of them ever came to rest at the same rate, the entitlement would be selling paint. The shelf plays each body's voice when you tap it, locked or not: the difference is heard before it is paid for.
 
 ### Built with
 
