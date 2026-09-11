@@ -121,3 +121,66 @@ class SquishyMaterialTest {
         }
     }
 }
+
+class SettlingTest {
+
+    private fun settleFramesFor(tuning: SquishyMaterial.Tuning, limit: Int = 900): Int {
+        val body = SquishyPhysics(tuning = tuning)
+        body.impulse(angleRadians = 0f, strength = 7f)
+        var frames = 0
+        while (frames < limit && !body.isAtRest()) {
+            body.advance(1f / 60f)
+            frames++
+        }
+        return frames
+    }
+
+    @Test
+    fun theStartOfABlockChangesNothing() {
+        val base = SquishyMaterial.JELLY.tuning
+        assertEquals(base, base.settled(0f))
+    }
+
+    @Test
+    fun aSettledBodyIsSofterAndCalmer() {
+        val base = SquishyMaterial.JELLY.tuning
+        val end = base.settled(1f)
+
+        assertTrue(end.stiffness < base.stiffness, "A settled body should give more easily")
+        assertTrue(end.damping > base.damping, "and should stop sooner, not wobble more")
+    }
+
+    @Test
+    fun settlingReadsAsCalmRatherThanFloppy() {
+        // Dropping stiffness alone would make the body wobble *longer* by the end
+        // of a block, which is the opposite of the feeling being aimed at.
+        val base = SquishyMaterial.JELLY.tuning
+        assertTrue(
+            settleFramesFor(base.settled(1f)) < settleFramesFor(base),
+            "The end of a block should come to rest faster than the start",
+        )
+    }
+
+    @Test
+    fun theChangeIsMonotonic() {
+        // Anything non-monotonic would read as the body changing its mind.
+        val base = SquishyMaterial.STRESS_BALL.tuning
+        val steps = (0..10).map { base.settled(it / 10f).stiffness }
+        assertEquals(steps.sortedDescending(), steps, "Stiffness wandered: $steps")
+    }
+
+    @Test
+    fun everyMaterialStaysStableWhileSettled() {
+        SquishyMaterial.entries.forEach { material ->
+            val frames = settleFramesFor(material.tuning.settled(1f))
+            assertTrue(frames < 900, "${material.displayName} never rests when settled")
+        }
+    }
+
+    @Test
+    fun outOfRangeProgressIsClamped() {
+        val base = SquishyMaterial.JELLY.tuning
+        assertEquals(base.settled(1f), base.settled(4f))
+        assertEquals(base.settled(0f), base.settled(-2f))
+    }
+}

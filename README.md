@@ -111,6 +111,14 @@ interruption deliberately breaks the rule by arriving with no motion at all —
 being pulled out of a distraction should feel like a stop, and sliding it in
 prettily would soften the one moment the app wants to be abrupt.
 
+**The companion does the thing it asks of you.** Over a focus block the body
+softens and stops wobbling — stiffness falls, damping rises — and its breathing
+slows to match. The same drag deforms it about a fifth further at minute
+twenty-four than at minute one, so a session visibly has depth rather than just a
+countdown. Dropping stiffness alone would have made it *wobblier* by the end,
+which is the opposite of the feeling, so a test asserts the settled body comes to
+rest faster than the fresh one.
+
 **Earning a body is a moment.** Crossing a threshold used to pass in silence —
 the progress bar simply arrived full. The block that earns a squishy now reveals
 it: the new body in its own finish, its name, and a button to start holding it.

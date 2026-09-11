@@ -105,3 +105,24 @@ enum class SquishyMaterial(
             entries.firstOrNull { it.name == key } ?: free
     }
 }
+
+/**
+ * The same body, [amount] of the way through a focus block.
+ *
+ * The companion is called a focus companion, so it ought to visibly do the thing
+ * it is asking of you. Over a block it softens and stops wobbling: a squishy that
+ * answers your thumb differently at minute twenty-four than it did at minute one
+ * is the clearest way to show a session has depth, and it costs nothing but
+ * interpolated constants.
+ *
+ * Stiffness falls and damping rises, which together read as *settled* rather than
+ * as *floppy* — dropping stiffness alone would make it wobble more at the end,
+ * which is the opposite of the feeling.
+ */
+internal fun SquishyMaterial.Tuning.settled(amount: Float): SquishyMaterial.Tuning {
+    val t = amount.coerceIn(0f, 1f)
+    return copy(
+        stiffness = stiffness * (1f - 0.30f * t),
+        damping = damping * (1f + 0.42f * t),
+    )
+}

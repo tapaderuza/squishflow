@@ -69,6 +69,10 @@ internal fun SquishyStage(
     reducedMotion: Boolean = false,
     stageSize: androidx.compose.ui.unit.Dp = 292.dp,
 ) {
+    val settles = state == SquishyState.RELAXING
+    // 1.9s at the start of a block down to 2.9s at the end: the same slowing the
+    // body is doing, so the two cues agree instead of arguing.
+    val breathMillis = if (settles) (1900 + 1000 * progress).toInt() else 2800
     val body = remember { SquishyPhysics(tuning = material.tuning) }
     val mood = rememberFaceMood(reducedMotion)
     val haptics = rememberHaptics()
@@ -107,14 +111,24 @@ internal fun SquishyStage(
         }
     }
 
+    // Quantised, because retuning is a cheap call but not one worth making on
+    // every frame of a twenty-five minute block.
+    val settleStep = if (settles) (progress * SETTLE_STEPS).toInt() else 0
+
     // Switching material keeps the current deformation and lets the new constants
     // carry it home, then rings the body once so the new feel is immediately obvious.
     LaunchedEffect(material) {
-        body.retune(material.tuning)
+        body.retune(material.tuning.settled(settleStep.toFloat() / SETTLE_STEPS))
         if (!reducedMotion) {
             body.impulse(angleRadians = 0f, strength = 3.4f, spread = 1.3f)
             running = true
         }
+    }
+
+    // The body softens as the block runs. No impulse here: this should be
+    // something you notice having happened, not something you see happen.
+    LaunchedEffect(settleStep) {
+        body.retune(material.tuning.settled(settleStep.toFloat() / SETTLE_STEPS))
     }
 
     // A completed block, or an interruption, should be felt on the body itself.
@@ -238,6 +252,7 @@ internal fun SquishyStage(
                 body = body,
                 state = state,
                 finish = material.finish,
+                breathMillis = breathMillis,
                 frame = frame,
                 driftX = driftX.value,
                 driftY = driftY.value,
@@ -270,6 +285,9 @@ private fun depthFor(position: Offset, centre: Offset, reach: Float): Float {
     return 0.08f + penetration * penetration * 0.46f
 }
 
+/** How finely the settle is quantised across a block. */
+private const val SETTLE_STEPS = 24
+
 /** Sub-surface flecks, scattered off-centre so they never read as a pattern. */
 private val SPECKLES = listOf(
     0.29f to 0.70f, 0.68f to 0.26f, 0.73f to 0.58f,
@@ -298,6 +316,7 @@ private fun SquishyBody(
     body: SquishyPhysics,
     state: SquishyState,
     finish: SquishyMaterial.Finish,
+    breathMillis: Int,
     frame: Int,
     driftX: Float,
     driftY: Float,
@@ -310,7 +329,7 @@ private fun SquishyBody(
         targetValue = 1.018f,
         animationSpec = infiniteRepeatable(
             animation = tween(
-                durationMillis = if (state == SquishyState.RELAXING) 1900 else 2800,
+                durationMillis = breathMillis,
                 easing = FastOutSlowInEasing,
             ),
             repeatMode = RepeatMode.Reverse,
