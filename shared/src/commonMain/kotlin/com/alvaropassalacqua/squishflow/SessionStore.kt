@@ -22,17 +22,27 @@ interface SessionStore {
  */
 data class SavedSession(val deadlineEpochMillis: Long, val totalSeconds: Int)
 
-/** The production store, backed by the same preferences as everything else. */
+/**
+ * The production store, backed by the same preferences as everything else.
+ *
+ * Writing the deadline down and scheduling the finish notification are the
+ * same act: both exist so the block outlives the screen being on.
+ */
 object SquishySessionStore : SessionStore {
-    override fun save(session: SavedSession) =
+    override fun save(session: SavedSession) {
         SquishySettings.saveSession(session.deadlineEpochMillis, session.totalSeconds)
+        BlockAlarm.schedule(session.deadlineEpochMillis, session.totalSeconds)
+    }
 
     override fun load(): SavedSession? {
         val (deadline, total) = SquishySettings.loadSession() ?: return null
         return SavedSession(deadline, total)
     }
 
-    override fun clear() = SquishySettings.clearSession()
+    override fun clear() {
+        SquishySettings.clearSession()
+        BlockAlarm.cancel()
+    }
 }
 
 /** Keeps nothing. For tests, and for callers that must not persist. */

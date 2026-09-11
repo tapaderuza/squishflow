@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The body, as a status-bar glyph: a round shape with the two eyes.
+     Notification small icons are drawn in one colour, so this is a silhouette. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M12,2.5a9.5,9.5 0 1,0 0,19a9.5,9.5 0 1,0 0,-19z" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="0"
+        android:pathData="M0,0" />
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M8.6,9.2a1.3,1.5 0 1,0 0,3a1.3,1.5 0 1,0 0,-3z M15.4,9.2a1.3,1.5 0 1,0 0,3a1.3,1.5 0 1,0 0,-3z" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="1.4"
+        android:strokeLineCap="round"
+        android:pathData="M9.2,15.2q2.8,2.4 5.6,0" />
+</vector>

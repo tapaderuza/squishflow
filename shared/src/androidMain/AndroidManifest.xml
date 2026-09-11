@@ -1,2 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- The block-complete notification fires at the deadline to the second.
+         Play reserves this permission for alarm and timer apps; this is a timer. -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+
+    <application>
+        <receiver
+            android:name="com.alvaropassalacqua.squishflow.BlockAlarmReceiver"
+            android:exported="false" />
+    </application>
+</manifest>

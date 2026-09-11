@@ -163,4 +163,13 @@ class SquishyVoiceTest {
         val first = SquishyVoice.line(SquishyState.TENSE, false, 0)
         assertEquals(first, SquishyVoice.line(SquishyState.TENSE, false, 0, daysAway = 10))
     }
+
+    @Test
+    fun theFinishNotificationSpeaksLikeTheApp() {
+        val (title, text) = blockDoneNotification(15 * 60)
+        assertTrue("15 min" in text, text)
+        assertTrue(!title.contains("!") && !text.contains("!"), "No exclamation marks, even on the lock screen")
+        assertTrue(!text.contains("streak", true) && !text.contains("great", true), "No praise, no streaks")
+        assertEquals("1 min", blockDoneNotification(10).second.substringAfter("Banked. ").substringBefore(" of"), "Never says zero minutes")
+    }
 }

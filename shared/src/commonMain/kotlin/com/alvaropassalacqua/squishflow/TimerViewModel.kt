@@ -92,6 +92,9 @@ class TimerViewModel internal constructor(
             val remaining = ((remainingMillis + 999L) / 1_000L).toInt()
             _uiState.value = _uiState.value.copy(selectedMinutes = (saved.totalSeconds / 60).coerceAtLeast(1))
             beginCountdown(remainingSeconds = remaining, totalSeconds = saved.totalSeconds)
+            // Written again on purpose: the store also owns the finish
+            // notification, and an app update or a reboot drops scheduled alarms.
+            store.save(saved)
         } else {
             _uiState.value = _uiState.value.copy(
                 remainingSeconds = 0, totalSeconds = saved.totalSeconds,

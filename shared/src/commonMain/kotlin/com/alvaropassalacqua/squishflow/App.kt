@@ -93,6 +93,9 @@ fun App() {
             material = loadSquishyMaterial(isPremium)
         }
 
+        // The permission has a reason the moment a block is running and not before.
+        RequestNotificationPermission(trigger = if (uiState.isSessionActive) 1 else 0)
+
         LaunchedEffect(trialMaterial) {
             if (trialMaterial == null) return@LaunchedEffect
             delay(TRIAL_MILLIS)
