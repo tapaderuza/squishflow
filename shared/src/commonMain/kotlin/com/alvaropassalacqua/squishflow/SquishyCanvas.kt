@@ -431,3 +431,55 @@ private fun List<RingSample>.toBlobPath(centre: Offset, radius: Float): Path {
         close()
     }
 }
+
+/**
+ * A small, still portrait of a body.
+ *
+ * The interactive stage carries gestures, a frame loop and a solver, none of
+ * which a thumbnail needs. This draws the same gradient and the same finish so a
+ * body is recognisably itself wherever it appears.
+ */
+@Composable
+internal fun MaterialOrb(
+    material: SquishyMaterial,
+    tint: Color,
+    shade: Color,
+    modifier: Modifier = Modifier,
+    dimmed: Boolean = false,
+) {
+    val alpha = if (dimmed) 0.55f else 1f
+    Canvas(modifier) {
+        val radius = min(size.width, size.height) / 2f
+        val centre = Offset(size.width / 2f, size.height / 2f)
+
+        // An opaque base first: the gradient's inner stop is a translucent white,
+        // and over a transparent canvas that reads as a washed-out smudge rather
+        // than as a lit surface. On the full-size body the path is filled over
+        // the ground, which is why this only shows up at thumbnail size.
+        drawCircle(color = tint, radius = radius, center = centre, alpha = alpha)
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(Color.White.copy(alpha = 0.46f), tint, shade),
+                center = centre + Offset(-radius * 0.30f, -radius * 0.36f),
+                radius = radius * 1.7f,
+            ),
+            radius = radius,
+            center = centre,
+            alpha = alpha,
+        )
+        drawCircle(
+            color = Color.White.copy(alpha = material.finish.rim * alpha),
+            radius = radius,
+            center = centre,
+            style = Stroke(width = 1.dp.toPx()),
+        )
+        // The gloss is what separates a balloon from a stress ball at this size.
+        drawOval(
+            brush = Brush.linearGradient(
+                listOf(Color.White.copy(alpha = material.finish.gloss * alpha), Color.Transparent),
+            ),
+            topLeft = Offset(centre.x - radius * 0.56f, centre.y - radius * 0.66f),
+            size = Size(radius * 0.78f, radius * 0.38f),
+        )
+    }
+}

@@ -879,16 +879,17 @@ private fun PremiumIntroScreen(
                 }
             }
             Spacer(Modifier.weight(0.4f))
-            Box(
-                modifier = Modifier
-                    .size(92.dp)
-                    .clip(CircleShape)
-                    .background(Premium),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text("PRO", color = Ink, fontSize = 20.sp, fontWeight = FontWeight.Black)
+            Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                SquishyMaterial.entries.filter { it.isPro }.forEach { body ->
+                    MaterialOrb(
+                        material = body,
+                        tint = SquishyState.RELAXING.bodyTint(),
+                        shade = SquishyState.RELAXING.bodyShadow(),
+                        modifier = Modifier.size(52.dp),
+                    )
+                }
             }
-            Spacer(Modifier.height(28.dp))
+            Spacer(Modifier.height(30.dp))
             Text(
                 "You can earn all of this.",
                 color = Color.White,
@@ -939,7 +940,7 @@ private fun PremiumBenefit(number: String, title: String, body: String) {
         modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
         verticalAlignment = Alignment.Top,
     ) {
-        Text(number, color = Premium, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        Text(number, color = Color.White.copy(alpha = 0.32f), fontSize = 11.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.width(18.dp))
         Column {
             Text(title, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
