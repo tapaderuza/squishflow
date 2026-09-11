@@ -15,6 +15,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -30,16 +36,32 @@ fun MissionPlannerScreen(
     var error by remember { mutableStateOf<String?>(null) }
     var planning by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val focus = LocalFocusManager.current
     val ink = PaperInk
     val paper = Paper
     val sage = Sage
 
-    Surface(Modifier.fillMaxSize(), color = paper) {
+    // iPhone has no back key to dismiss a keyboard with, so the field needs its
+    // own ways out: a Done key, a tap anywhere else on the page, and the button
+    // rising above the keyboard rather than hiding behind it. The first person
+    // to run this on a real iPhone got stuck here.
+    Surface(
+        Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) { detectTapGestures(onTap = { focus.clearFocus() }) },
+        color = paper,
+    ) {
         Column(
-            Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(26.dp),
+            Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .imePadding()
+                .verticalScroll(rememberScrollState())
+                .padding(26.dp),
         ) {
             Text("SQUISHFLOW · ADAPTIVE FOCUS", color = ink, fontSize = 12.sp, fontWeight = FontWeight.Black, letterSpacing = 1.6.sp)
-            Spacer(Modifier.weight(.7f))
+            Spacer(Modifier.height(96.dp))
             Text("What do you want\nto finish today?", color = ink, fontSize = 38.sp, lineHeight = 43.sp, fontWeight = FontWeight.Light)
             Spacer(Modifier.height(14.dp))
             Text(
@@ -55,9 +77,11 @@ fun MissionPlannerScreen(
                 enabled = !planning,
                 shape = RoundedCornerShape(22.dp),
                 supportingText = { Text("${goal.length}/500") },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { focus.clearFocus() }),
             )
             if (error != null) Text(error!!, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
-            Spacer(Modifier.weight(1f))
+            Spacer(Modifier.height(36.dp))
             Button(
                 onClick = {
                     planning = true
