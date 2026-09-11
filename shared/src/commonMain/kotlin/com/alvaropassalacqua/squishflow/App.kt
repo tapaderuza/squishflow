@@ -122,6 +122,7 @@ fun App() {
                 // process death rather than resetting with the in-memory timer.
                 val before = lifetime.focusedMinutes
                 SquishySettings.addFocusedMinutes(uiState.totalSeconds / 60)
+                recordFocusToday(uiState.totalSeconds / 60)
                 SquishySettings.recordBlock(completed = true)
                 lifetime = LifetimeStats.load()
                 justUnlocked = materialUnlockedBetween(before, lifetime.focusedMinutes)
@@ -260,6 +261,7 @@ fun App() {
             )
             Destination.Journey -> JourneyScreen(
                 stats = lifetime,
+                week = remember(lifetime) { loadFocusWeek() },
                 selected = material,
                 isPremium = isPremium,
                 onBack = { showJourney = false },

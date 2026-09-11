@@ -37,6 +37,10 @@ expect object SquishySettings {
     fun focusedMinutes(): Int
     fun addFocusedMinutes(minutes: Int)
 
+    /** The per-day record behind [FocusWeek], in its storage form. */
+    fun focusDays(): String?
+    fun saveFocusDays(value: String)
+
     /**
      * Lifetime block counts.
      *
@@ -107,6 +111,18 @@ data class LifetimeStats(
  */
 fun daysAway(lastOpenedEpochDay: Long?, todayEpochDay: Long): Int? =
     lastOpenedEpochDay?.let { (todayEpochDay - it).coerceAtLeast(0L).toInt() }
+
+/** Add a finished block's minutes to today's record. */
+@OptIn(ExperimentalTime::class)
+fun recordFocusToday(minutes: Int) {
+    val today = Clock.System.now().toEpochMilliseconds() / MILLIS_PER_DAY
+    SquishySettings.saveFocusDays(FocusWeek.record(SquishySettings.focusDays(), today, minutes))
+}
+
+/** The last seven days, read from storage. */
+@OptIn(ExperimentalTime::class)
+fun loadFocusWeek(): FocusWeek =
+    FocusWeek.parse(SquishySettings.focusDays(), Clock.System.now().toEpochMilliseconds() / MILLIS_PER_DAY)
 
 /** Record this launch and report how long it has been since the previous one. */
 @OptIn(ExperimentalTime::class)

@@ -12,6 +12,7 @@ actual object SquishySettings {
     private const val FAILED = "failed_blocks_v1"
     private const val DECLINED = "protection_declined_v1"
     private const val LAST_OPENED = "last_opened_epoch_day_v1"
+    private const val FOCUS_DAYS = "focus_days_v1"
     private const val SESSION_DEADLINE = "session_deadline_epoch_v1"
     private const val SESSION_TOTAL = "session_total_seconds_v1"
 
@@ -58,6 +59,12 @@ actual object SquishySettings {
 
     actual fun markProtectionDeclined() {
         prefs()?.edit()?.putBoolean(DECLINED, true)?.apply()
+    }
+
+    actual fun focusDays(): String? = prefs()?.getString(FOCUS_DAYS, null)
+
+    actual fun saveFocusDays(value: String) {
+        prefs()?.edit()?.putString(FOCUS_DAYS, value)?.apply()
     }
 
     actual fun lastOpenedEpochDay(): Long? =

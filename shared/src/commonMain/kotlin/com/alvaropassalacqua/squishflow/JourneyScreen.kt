@@ -53,6 +53,7 @@ fun JourneyScreen(
     stats: LifetimeStats,
     selected: SquishyMaterial,
     isPremium: Boolean,
+    week: FocusWeek,
     onBack: () -> Unit,
     onPremium: () -> Unit,
     onSelect: (SquishyMaterial) -> Unit,
@@ -95,6 +96,13 @@ fun JourneyScreen(
                     "FINISHED\nWHAT I START",
                     Modifier.weight(1f),
                 )
+            }
+
+            week.summary?.let { summary ->
+                Spacer(Modifier.height(26.dp))
+                WeekStrip(week)
+                Spacer(Modifier.height(10.dp))
+                Text(summary, color = Muted, fontSize = 13.sp, textAlign = TextAlign.Center)
             }
 
             Spacer(Modifier.height(30.dp))
@@ -189,6 +197,41 @@ private fun FocusTotal(minutes: Int) {
             fontWeight = FontWeight.Bold,
             letterSpacing = 1.6.sp,
         )
+    }
+}
+
+/**
+ * Seven bars, oldest to today. Heights are relative to the week's best day,
+ * so the strip always reads as *this week* rather than against a target
+ * nobody set. Empty days are drawn faintly and never in red.
+ */
+@Composable
+private fun WeekStrip(week: FocusWeek) {
+    val days = week.days
+    val peak = week.peak.coerceAtLeast(1)
+    Row(
+        Modifier.fillMaxWidth(0.62f).height(44.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.Bottom,
+    ) {
+        days.forEachIndexed { index, minutes ->
+            val fraction = if (minutes == 0) 0f else (0.18f + 0.82f * minutes / peak)
+            val isToday = index == days.lastIndex
+            Box(
+                Modifier
+                    .weight(1f)
+                    .semantics { contentDescription = if (minutes == 0) "No focus" else "$minutes minutes" }
+                    .height(if (minutes == 0) 3.dp else (44.dp * fraction))
+                    .clip(RoundedCornerShape(3.dp))
+                    .background(
+                        when {
+                            minutes == 0 -> Ink.copy(alpha = 0.10f)
+                            isToday -> Sage
+                            else -> Sage.copy(alpha = 0.55f)
+                        },
+                    ),
+            )
+        }
     }
 }
 
