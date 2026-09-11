@@ -60,17 +60,7 @@ jobs:
       - name: Boot a simulator and capture the app
         run: |
           set -euo pipefail
-          DEVICE=$(xcrun simctl list devices available --json \
-            | python3 -c 'import json,sys
-d=json.load(sys.stdin)["devices"]
-for rt,devs in d.items():
-    for x in devs:
-        if "iPhone" in x["name"] and "Pro" in x["name"] and x["isAvailable"]:
-            print(x["udid"]); sys.exit()
-for rt,devs in d.items():
-    for x in devs:
-        if "iPhone" in x["name"] and x["isAvailable"]:
-            print(x["udid"]); sys.exit()')
+          DEVICE=$(xcrun simctl list devices available --json | python3 tools/pick_simulator.py)
           echo "Using simulator $DEVICE"
           xcrun simctl boot "$DEVICE"
           xcrun simctl bootstatus "$DEVICE" -b
