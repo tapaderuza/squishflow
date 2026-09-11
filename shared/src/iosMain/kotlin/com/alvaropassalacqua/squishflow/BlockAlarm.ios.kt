@@ -3,7 +3,6 @@ package com.alvaropassalacqua.squishflow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import platform.Foundation.NSDate
-import platform.Foundation.timeIntervalSince1970
 import platform.UserNotifications.UNAuthorizationOptionAlert
 import platform.UserNotifications.UNAuthorizationOptionSound
 import platform.UserNotifications.UNMutableNotificationContent
