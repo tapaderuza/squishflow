@@ -49,12 +49,14 @@ jobs:
 
       - name: Build the app for the simulator
         run: |
+          # SYMROOT rather than -derivedDataPath: the latter insists on a scheme,
+          # and the project keeps none on disk (Xcode generates them on open).
           xcodebuild \
             -project iosApp/iosApp.xcodeproj \
             -target iosApp \
             -sdk iphonesimulator \
             -configuration Debug \
-            -derivedDataPath build/ios \
+            SYMROOT="$PWD/build/ios" \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             build
