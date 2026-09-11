@@ -62,7 +62,7 @@ SEGMENTS = [
     (17,  13, T1, 31.0),   # planner: typing, the plan appears
     (30,  18, T1, 42.5),   # start the block, squeeze, drag, drag
     (48,  11, T1, 60.0),   # the settled body under a slow deep drag
-    (59,  17, T2, 3.0),    # the shelf, a locked body tried, the paywall
+    (59,  17, T2, 5.0),    # the shelf, a locked body tried, the pitch, the plans
     (76,  9,  T3, 6.5),    # EARNED: Mochi. Hold it. Block complete.
     # 85-100 is the two-platform beat, built separately below
     (100, 11, None, 0.0),  # montage, built separately below
@@ -75,7 +75,7 @@ GESTURES = [
     (8.6, "jelly"), (11.5, "jelly"), (14.6, "jelly"),            # the three welcome squeezes
     (38.0, "jelly"), (40.7, "jelly"), (43.4, "jelly"), (46.1, "jelly"),  # in-session drags
     (49.6, "jelly"), (52.0, "jelly"), (56.0, "jelly"),           # the slow deep drag and a tap
-    (70.5, "water-balloon"), (72.7, "water-balloon"), (74.9, "water-balloon"),  # trying the water balloon
+    (63.5, "water-balloon"), (65.5, "water-balloon"), (67.5, "water-balloon"),  # trying the water balloon
     (80.5, "mochi"),                                            # holding the Mochi
 ]
 
