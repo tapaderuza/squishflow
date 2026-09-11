@@ -1,0 +1,130 @@
+# Archives the iPhone app and uploads it to App Store Connect (TestFlight and,
+# from there, the App Store) from a hosted Mac.
+#
+# No local Mac is capable of a current Xcode, so the whole release path lives
+# here. Signing is Xcode's cloud-managed signing driven by an App Store Connect
+# API key: no certificates or profiles are stored in the repository or in
+# secrets, Xcode creates and manages the Apple Distribution identity itself.
+#
+# Run it by hand from the Actions tab once these repository secrets exist:
+#
+#   APPLE_TEAM_ID          10-character team id from developer.apple.com
+#   APPSTORE_KEY_ID        App Store Connect API key id   (Users and Access → Integrations)
+#   APPSTORE_ISSUER_ID     issuer id from the same page
+#   APPSTORE_KEY_P8        the .p8 file's contents (role: App Manager or Admin)
+#   REVENUECAT_IOS_KEY     the appl_ public SDK key from RevenueCat
+#
+# The build number is the run number, so every upload is newer than the last.
+
+name: iOS App Store
+
+on:
+  workflow_dispatch:
+    inputs:
+      marketing_version:
+        description: "Version shown in the store (CFBundleShortVersionString)"
+        default: "1.0.0"
+        required: true
+
+jobs:
+  upload:
+    runs-on: macos-15
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Cache Gradle and Kotlin/Native
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.konan
+          key: ios-${{ runner.os }}-${{ hashFiles('**/*.gradle.kts', 'gradle.properties', 'gradle/wrapper/*.properties') }}
+          restore-keys: ios-${{ runner.os }}-
+
+      - name: Install the App Store Connect API key
+        env:
+          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          APPSTORE_KEY_P8: ${{ secrets.APPSTORE_KEY_P8 }}
+        run: |
+          set -euo pipefail
+          test -n "$APPSTORE_KEY_ID" || { echo "APPSTORE_KEY_ID secret is missing"; exit 1; }
+          mkdir -p ~/private_keys
+          printf '%s' "$APPSTORE_KEY_P8" > ~/private_keys/AuthKey_${APPSTORE_KEY_ID}.p8
+          chmod 600 ~/private_keys/AuthKey_${APPSTORE_KEY_ID}.p8
+
+      - name: Archive
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          REVENUECAT_IOS_KEY: ${{ secrets.REVENUECAT_IOS_KEY }}
+        run: |
+          set -euo pipefail
+          xcodebuild \
+            -project iosApp/iosApp.xcodeproj \
+            -scheme iosApp \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination "generic/platform=iOS" \
+            -archivePath "$PWD/build/Squishflow.xcarchive" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$HOME/private_keys/AuthKey_${APPSTORE_KEY_ID}.p8" \
+            -authenticationKeyID "$APPSTORE_KEY_ID" \
+            -authenticationKeyIssuerID "$APPSTORE_ISSUER_ID" \
+            TEAM_ID="$APPLE_TEAM_ID" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            REVENUECAT_IOS_KEY="$REVENUECAT_IOS_KEY" \
+            MARKETING_VERSION="${{ github.event.inputs.marketing_version }}" \
+            CURRENT_PROJECT_VERSION="${{ github.run_number }}" \
+            archive
+
+      - name: Upload to App Store Connect
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          cat > build/ExportOptions.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>teamID</key><string>${APPLE_TEAM_ID}</string>
+            <key>uploadSymbols</key><true/>
+            <key>manageAppVersionAndBuildNumber</key><false/>
+          </dict>
+          </plist>
+          EOF
+          xcodebuild \
+            -exportArchive \
+            -archivePath "$PWD/build/Squishflow.xcarchive" \
+            -exportOptionsPlist build/ExportOptions.plist \
+            -exportPath "$PWD/build/export" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$HOME/private_keys/AuthKey_${APPSTORE_KEY_ID}.p8" \
+            -authenticationKeyID "$APPSTORE_KEY_ID" \
+            -authenticationKeyIssuerID "$APPSTORE_ISSUER_ID"
+
+      - name: Keep the archive's dSYMs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Squishflow-dSYMs-${{ github.run_number }}
+          path: build/Squishflow.xcarchive/dSYMs
+          if-no-files-found: ignore
