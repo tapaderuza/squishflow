@@ -104,4 +104,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ios-simulator-app
-          path: build/ios/Build/Products/Debug-iphonesimulator/*.app
+          path: build/ios/Debug-iphonesimulator/*.app
