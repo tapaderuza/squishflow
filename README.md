@@ -7,6 +7,9 @@
 Every focus app asks you to be disciplined at exactly the moment you have no discipline left. Squishflow puts a soft body between you and the work: you tell it what you want to finish, it hands back blocks short enough to believe, and while you sit with the tension you push your thumb into Squishy and it pushes back.
 
 <p align="center">
+  <img src="evidence/squish.gif" width="240" alt="Squishy being dragged and settling, mid-session">
+</p>
+<p align="center">
   <img src="evidence/screen_welcome.png" width="30%" alt="First run: Meet Squishy">
   <img src="evidence/screen_focus.png" width="30%" alt="The focus screen">
   <img src="evidence/screen_deform.png" width="30%" alt="The body deformed mid-drag">
