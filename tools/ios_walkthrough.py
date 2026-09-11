@@ -17,10 +17,15 @@ UDID, BUNDLE, OUT = sys.argv[1], sys.argv[2], sys.argv[3]
 
 
 def idb(*args, capture=False):
-    cmd = ["idb", *args, "--udid", UDID]
-    if capture:
-        return subprocess.run(cmd, capture_output=True, text=True, check=True).stdout
-    subprocess.run(cmd, check=True)
+    # --udid is a global option and belongs before the subcommand.
+    cmd = ["idb", "--udid", UDID, *args]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        # Surface the reason: a swallowed stderr costs a full CI round trip.
+        print("idb failed:", " ".join(cmd), file=sys.stderr)
+        print(result.stderr.strip(), file=sys.stderr)
+        raise SystemExit(result.returncode)
+    return result.stdout if capture else None
 
 
 def shot(name):

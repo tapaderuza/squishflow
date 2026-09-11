@@ -155,10 +155,11 @@ jobs:
           xcrun simctl bootstatus "$DEVICE" -b
           APP=$(find app -name "*.app" -maxdepth 2 | head -1)
           xcrun simctl install "$DEVICE" "$APP"
-          idb_companion --udid "$DEVICE" --only simulator > /tmp/companion.log 2>&1 &
-          sleep 5
-          idb connect "$DEVICE" || true
           mkdir -p walkthrough
+          idb_companion --udid "$DEVICE" --only simulator > walkthrough/companion.log 2>&1 &
+          sleep 6
+          idb connect "$DEVICE"
+          idb list-targets
           python3 tools/ios_walkthrough.py "$DEVICE" com.alvaropassalacqua.squishflow walkthrough
 
       - name: Upload the walkthrough
