@@ -49,8 +49,10 @@ T3 = os.path.join(TAKES, "take3_unlock.mp4")
 IOS = os.path.join(ROOT, "evidence", "ios", "ios-idle.mp4")
 TRANSITIONS = os.path.join(ROOT, "evidence", "video", "03_transitions.mp4")
 ICON = os.path.join(ROOT, "evidence", "app_icon_1024.png")
-SQUEEZE = os.path.join(ROOT, "shared", "build", "audio-preview", "squeeze.wav")
-RELEASE = os.path.join(ROOT, "shared", "build", "audio-preview", "release.wav")
+# The app's own voices, written by the unit tests. Each material has its own,
+# so a gesture on the water balloon must not be dubbed with jelly.
+AUDIO = os.path.join(ROOT, "shared", "build", "audio-preview")
+VOICES = ["jelly", "water-balloon", "mochi"]
 
 # The timeline. (video_start, duration, source, source_in). Sources are trimmed
 # to length and concatenated in order; the sum of durations must be 120.
@@ -67,13 +69,14 @@ SEGMENTS = [
     (111, 9,  T3, 29.0),   # at rest, holding the Mochi
 ]
 
-# Gestures in the final timeline, for the squish samples. Each press gets a
-# squeeze and, a beat later, a release.
+# Gestures in the final timeline, for the squish samples: (second, material).
+# Each press gets a squeeze and, a beat later, a release.
 GESTURES = [
-    8.6, 11.5, 14.6,                     # the three welcome squeezes
-    38.0, 40.7, 43.4, 46.1,              # in-session drags
-    49.6, 52.0, 56.0,                    # the slow deep drag and a tap
-    70.5, 72.7, 74.9,                    # trying the water balloon
+    (8.6, "jelly"), (11.5, "jelly"), (14.6, "jelly"),            # the three welcome squeezes
+    (38.0, "jelly"), (40.7, "jelly"), (43.4, "jelly"), (46.1, "jelly"),  # in-session drags
+    (49.6, "jelly"), (52.0, "jelly"), (56.0, "jelly"),           # the slow deep drag and a tap
+    (70.5, "water-balloon"), (72.7, "water-balloon"), (74.9, "water-balloon"),  # trying the water balloon
+    (80.5, "mochi"),                                            # holding the Mochi
 ]
 
 
@@ -163,10 +166,12 @@ def audio_filter(n_cues):
     for i, (t, _) in enumerate(CUES):
         chains.append(f"[{1 + i}:a]adelay={int(t * 1000)}|{int(t * 1000)},volume=1.0[n{i}]")
         labels.append(f"[n{i}]")
-    sq = 1 + n_cues
-    rl = sq + 1
-    for k, t in enumerate(GESTURES):
+    first_voice = 1 + n_cues
+    for k, (t, material) in enumerate(GESTURES):
         ms = int(t * 1000)
+        # Inputs after the cues come in pairs per voice: squeeze, then release.
+        sq = first_voice + 2 * VOICES.index(material)
+        rl = sq + 1
         chains.append(f"[{sq}:a]adelay={ms}|{ms},volume=1.15[s{k}]")
         chains.append(f"[{rl}:a]adelay={ms + 850}|{ms + 850},volume=0.9[r{k}]")
         labels.extend([f"[s{k}]", f"[r{k}]"])
@@ -203,7 +208,8 @@ def main():
     inputs = ["-i", captioned]
     for i in range(len(CUES)):
         inputs += ["-i", os.path.join(HERE, "narration", f"cue{i:02d}.mp3")]
-    inputs += ["-i", SQUEEZE, "-i", RELEASE]
+    for voice in VOICES:
+        inputs += ["-i", os.path.join(AUDIO, f"squeeze-{voice}.wav"), "-i", os.path.join(AUDIO, f"release-{voice}.wav")]
     run(
         *inputs,
         "-filter_complex", audio_filter(len(CUES)),

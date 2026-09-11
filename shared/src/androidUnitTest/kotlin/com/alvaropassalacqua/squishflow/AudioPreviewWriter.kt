@@ -30,6 +30,8 @@ class AudioPreviewWriter {
             // plays in the app. Jelly is the reference voice.
             SquishyMaterial.entries.forEach { material ->
                 val name = material.name.lowercase().replace('_', '-')
+                put("squeeze-$name", SquishSynth.squeeze(material))
+                put("release-$name", SquishSynth.release(material))
                 put("press-and-release-$name", SquishSynth.squeeze(material) + gap + SquishSynth.release(material))
             }
         }

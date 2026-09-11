@@ -33,10 +33,10 @@ CUES = [
     (85.0, "One Kotlin codebase. The same companion on Android and iPhone. "
            "The iOS build runs in the cloud on every push, because the only Mac we had could not."),
 
-    (100.0, "No audio files ship. The squelch is synthesised. The copy has no exclamation marks, by test. "
-            "The icon is the physics."),
+    (100.0, "No audio files ship. Each body's voice is synthesised from its own stiffness. "
+            "No exclamation marks, by test. The icon is the physics."),
 
-    (111.0, "Squishflow. Focus should not take force."),
+    (112.5, "Squishflow. Focus should not take force."),
 ]
 
 # Captions shown on the left of the frame, timed to the beats. Kept to a few
@@ -50,6 +50,6 @@ CAPTIONS = [
     (59.0,  76.0,  "Every body\ncan be earned"),
     (76.0,  85.0,  "Yours to keep"),
     (85.0,  100.0, "One codebase.\nAndroid and iPhone."),
-    (100.0, 111.0, "Synthesised voice.\nTested copy.\nPhysics icon."),
+    (100.0, 111.0, "A voice per body.\nTested copy.\nPhysics icon."),
     (111.0, 120.0, "github.com/tapaderuza/squishflow"),
 ]
