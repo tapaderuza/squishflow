@@ -47,9 +47,10 @@ data class FocusWeek(val minutesByDay: Map<Long, Int>, val today: Long) {
         fun record(stored: String?, day: Long, minutes: Int): String {
             val map = parse(stored, day).minutesByDay.toMutableMap()
             map[day] = (map[day] ?: 0) + minutes
+            // toSortedMap is JVM-only; sort the entries by hand for common code.
             return map.filterKeys { it > day - KEEP_DAYS }
-                .toSortedMap()
-                .entries.joinToString(",") { "${it.key}:${it.value}" }
+                .entries.sortedBy { it.key }
+                .joinToString(",") { "${it.key}:${it.value}" }
         }
     }
 }
