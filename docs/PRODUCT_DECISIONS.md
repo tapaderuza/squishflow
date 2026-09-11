@@ -48,7 +48,7 @@ Free: unlimited manual sessions up to 25 minutes, three adaptive plans/day, base
 
 Pro (€4.99 monthly / €29.99 annual, seven-day trial): server AI planning, unlimited adaptation, advanced insights, Deep Focus, weekly review and personality packs. Annual is preselected with transparent “Save 50%” copy.
 
-RevenueCat uses `default`, entitlement `squish_pro`, products `squish_pro_monthly` and `squish_pro_annual`. Development currently uses RevenueCat Test Store; platform keys replace it before store release.
+RevenueCat uses the `default` offering, one entitlement (named `Squish Pro` in the dashboard; the code treats any active entitlement as Pro), and monthly, yearly and lifetime packages. Development currently uses RevenueCat Test Store; platform keys replace it before store release.
 
 ## AI architecture
 

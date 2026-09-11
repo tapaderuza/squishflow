@@ -27,8 +27,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.revenuecat.purchases.kmp.ui.revenuecatui.Paywall
-import com.revenuecat.purchases.kmp.ui.revenuecatui.PaywallOptions
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -303,14 +301,10 @@ fun App() {
                     missionAccepted = false
                 },
             )
-            Destination.Paywall -> {
-                val options = remember {
-                    PaywallOptions(dismissRequest = { showPaywall = false }) {
-                        shouldDisplayDismissButton = true
-                    }
-                }
-                Paywall(options)
-            }
+            Destination.Paywall -> PlansScreen(
+                onDismiss = { showPaywall = false },
+                onUnlocked = { showPaywall = false },
+            )
             Destination.PremiumIntro -> PremiumIntroScreen(
                 onDismiss = { showPremiumIntro = false },
                 onSeePlans = {
@@ -916,7 +910,7 @@ private fun PremiumIntroScreen(
             )
             Spacer(Modifier.height(38.dp))
             PremiumBenefit("01", "Every body, now", "The four you are working towards, without the wait.")
-            PremiumBenefit("02", "Smarter rescues", "Turn movement and breath into time you get back.")
+            PremiumBenefit("02", "Keep what you earn", "Let Pro lapse and every body you focused for stays.")
             PremiumBenefit("03", "No ads, ever, for anyone", "Subscriptions are the only thing this app sells.")
             Spacer(Modifier.weight(1f))
             Button(

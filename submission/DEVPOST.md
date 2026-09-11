@@ -44,7 +44,7 @@ The materials are not reskins. A test asserts that a stress ball settles in fewe
 
 ### Built with
 
-Kotlin Multiplatform and Compose Multiplatform. The UI, timer, planner, physics and audio synthesis are all in `commonMain`; the platform source sets hold only what genuinely differs — haptics, persistence, app selection. RevenueCat's KMP SDK handles the paywall and the `squish_pro` entitlement.
+Kotlin Multiplatform and Compose Multiplatform. The UI, timer, planner, physics and audio synthesis are all in `commonMain`; the platform source sets hold only what genuinely differs — haptics, persistence, app selection. RevenueCat's KMP SDK handles offerings, purchase, restore and the Pro entitlement; the plans screen itself is drawn in the app's own style.
 
 It runs on Android and iPhone from one codebase. The iOS build lives in GitHub Actions because the only Mac available runs Monterey: a hosted Mac compiles the shared Kotlin for Apple, builds the Xcode project, boots a simulator and photographs the app on every push. The shared Kotlin compiled for iOS on the first attempt.
 
