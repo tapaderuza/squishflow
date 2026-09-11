@@ -1,10 +1,26 @@
 # The two-minute video
 
-Devpost caps it at 2:00 and requires the app running on a device. This is a shot
-list with timings, not a script to read aloud — the app has a voice already, and
-the video should let it speak.
+**Delivered:** `submission/video/squishflow-demo.mp4` — 2:00, 1920×1080, 30 fps.
 
-## Ground rules
+It is generated end to end by `submission/video/build.py`: the takes come from
+the emulator driven over adb, the narration from a neural voice
+(`en-GB-SoniaNeural`, script in `script.py`), and the squishes are the app's own
+synthesised samples placed at the instant of each gesture — Android's screen
+recorder captures no audio, so this is also the only way the sound gets in.
+
+To change a line, a caption or a cue time, edit `script.py` and rerun
+`build.py`. To re-record a take, the adb sequences are in the session notes;
+the three takes cover onboarding-to-focus, the shelf and trial, and the unlock.
+
+**Upload it to YouTube as unlisted** and paste the link into the Devpost form.
+
+---
+
+## The original shot list
+
+Kept for reference; the delivered cut follows it.
+
+
 
 - **Record on a physical Android phone**, screen-recorded. Not the emulator: the
   physics runs at real frame rate on hardware and looks noticeably better.
