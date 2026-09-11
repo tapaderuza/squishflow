@@ -116,6 +116,58 @@ jobs:
           name: ios-simulator-app
           path: build/ios/Debug-iphonesimulator/*.app
 
+  # An unsigned build for a physical iPhone, packaged as an IPA. There is no Mac
+  # here capable of installing it, so it is signed on the way in instead: a
+  # sideloading tool on Windows re-signs it with an ordinary Apple ID and installs
+  # it over USB. Unsigned on purpose — the tool applies its own signature and
+  # entitlements, and a free Apple ID cannot carry Family Controls anyway.
+  device:
+    needs: ios
+    runs-on: macos-15
+    timeout-minutes: 40
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Cache Gradle and Kotlin/Native
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.konan
+          key: ios-${{ runner.os }}-${{ hashFiles('**/*.gradle.kts', 'gradle.properties', 'gradle/wrapper/*.properties') }}
+          restore-keys: ios-${{ runner.os }}-
+
+      - name: Build for a physical iPhone
+        run: |
+          xcodebuild             -project iosApp/iosApp.xcodeproj             -target iosApp             -sdk iphoneos             -configuration Debug             SYMROOT="$PWD/build/ios-device"             ARCHS=arm64             ONLY_ACTIVE_ARCH=YES             CODE_SIGNING_ALLOWED=NO             CODE_SIGNING_REQUIRED=NO             build
+
+      - name: Package as an IPA
+        run: |
+          set -euo pipefail
+          APP=$(find build/ios-device -name "*.app" -path "*iphoneos*" | head -1)
+          echo "packaging $APP"
+          mkdir -p ipa/Payload
+          cp -R "$APP" ipa/Payload/
+          (cd ipa && zip -qr ../Squishflow-unsigned.ipa Payload)
+          ls -la Squishflow-unsigned.ipa
+
+      - name: Upload the IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: Squishflow-iphone-ipa
+          path: Squishflow-unsigned.ipa
+
   # Walks every main screen on the simulator by tapping through the
   # accessibility tree, so the parity with Android is shown rather than claimed.
   # Kept as its own job: it depends on a third-party driver (idb) and should not
