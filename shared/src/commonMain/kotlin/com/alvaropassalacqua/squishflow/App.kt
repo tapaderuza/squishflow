@@ -319,6 +319,9 @@ fun App() {
                 missionBlock = mission!!.blocks.getOrNull(activeBlockIndex),
                 material = trialMaterial ?: material,
                 completedBlocks = lifetime.completedBlocks,
+                minutesToNextBody = nextMaterialToEarn(lifetime.focusedMinutes)
+                    ?.takeIf { !isPremium }
+                    ?.let { it.unlockMinutes - lifetime.focusedMinutes },
                 reducedMotion = reducedMotion,
                 isTrialling = trialMaterial != null,
                 onDurationSelected = timerViewModel::selectDuration,
@@ -456,6 +459,7 @@ private fun FocusScreen(
     missionBlock: MissionBlock?,
     material: SquishyMaterial,
     completedBlocks: Int,
+    minutesToNextBody: Int?,
     reducedMotion: Boolean,
     isTrialling: Boolean,
     onDurationSelected: (Int) -> Unit,
@@ -505,12 +509,12 @@ private fun FocusScreen(
             Spacer(Modifier.weight(0.45f))
 
             Text(
-                text = when {
-                    uiState.lastSessionCompleted -> "You came back. That counts."
-                    uiState.isSessionActive -> "Just this. Just now."
-                    uiState.squishyState == SquishyState.COMPRESSED -> "No guilt. Come back whenever."
-                    else -> "Tap. Breathe. Begin."
-                },
+                text = SquishyVoice.line(
+                    state = uiState.squishyState,
+                    justCompleted = uiState.lastSessionCompleted,
+                    completedBlocks = completedBlocks,
+                    minutesToNextBody = minutesToNextBody,
+                ),
                 color = Muted,
                 fontSize = 15.sp,
                 textAlign = TextAlign.Center,
