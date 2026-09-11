@@ -58,11 +58,18 @@ final class FocusProtectionModel: ObservableObject {
 struct ContentView: View {
     @StateObject private var protection = FocusProtectionModel()
 
+    /// Launched with `-squishy`, the app opens straight on the companion.
+    ///
+    /// Used by CI, which can build and boot a simulator but has no finger to
+    /// press "timer only" with, and handy for anyone who wants to skip the
+    /// protection setup during development.
+    private let openOnCompanion = ProcessInfo.processInfo.arguments.contains("-squishy")
+
     var body: some View {
         ZStack {
             Color(red: 0.047, green: 0.055, blue: 0.051).ignoresSafeArea()
 
-            if protection.showSquishy {
+            if protection.showSquishy || openOnCompanion {
                 ComposeView()
                     .ignoresSafeArea(.all, edges: .bottom)
             } else {
