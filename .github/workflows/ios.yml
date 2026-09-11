@@ -42,8 +42,10 @@ jobs:
       - name: Compile the shared Kotlin for the iOS simulator
         run: ./gradlew :shared:compileKotlinIosSimulatorArm64 --no-daemon --console=plain
 
-      - name: Run the shared tests on the iOS simulator target
-        run: ./gradlew :shared:iosSimulatorArm64Test --no-daemon --console=plain
+      # The shared tests are not run here on purpose. A standalone Kotlin/Native
+      # test binary cannot link RevenueCat's Swift UI framework — only Xcode sets
+      # up the Swift runtime for that — and the suite is platform-independent
+      # logic that already runs on every push through the Android job.
 
       - name: Build the app for the simulator
         run: |
