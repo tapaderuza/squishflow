@@ -65,6 +65,7 @@ fun App() {
         var showPaywall by remember { mutableStateOf(false) }
         var showPremiumIntro by remember { mutableStateOf(false) }
         var pickerDraft by remember { mutableStateOf<List<String>?>(null) }
+        var pitchReason by remember { mutableStateOf<PitchReason>(PitchReason.Shelf) }
         var showRescueMode by remember { mutableStateOf(false) }
         var showJourney by remember { mutableStateOf(false) }
         var trialMaterial by remember { mutableStateOf<SquishyMaterial?>(null) }
@@ -97,7 +98,9 @@ fun App() {
             delay(TRIAL_MILLIS)
             // Hand the body back before asking for money, so the upgrade screen
             // opens over the free material rather than over one they cannot keep.
+            val tried = trialMaterial!!
             trialMaterial = null
+            pitchReason = PitchReason.Trial(tried, (tried.unlockMinutes - lifetime.focusedMinutes).coerceAtLeast(0))
             showPremiumIntro = true
         }
 
@@ -128,6 +131,7 @@ fun App() {
                 conversionPromptShown = true
                 SquishySettings.markConversionPromptSeen()
                 delay(1_400)
+                pitchReason = PitchReason.Introduction
                 showPremiumIntro = true
             }
         }
@@ -197,7 +201,7 @@ fun App() {
                 allowance = protectedAppAllowance(isPremium),
                 draft = pickerDraft,
                 onDraftChanged = { pickerDraft = it },
-                onUpgrade = { showPremiumIntro = true },
+                onUpgrade = { pitchReason = PitchReason.ProtectionLimit; showPremiumIntro = true },
             ) { selected ->
                 pickerDraft = null
                 FocusPreferences.completeOnboarding(selected)
@@ -256,7 +260,7 @@ fun App() {
                 selected = material,
                 isPremium = isPremium,
                 onBack = { showJourney = false },
-                onPremium = { showJourney = false; showPremiumIntro = true },
+                onPremium = { showJourney = false; pitchReason = PitchReason.Shelf; showPremiumIntro = true },
                 onSelect = {
                     material = it
                     SquishySettings.saveMaterialKey(it.name)
@@ -314,6 +318,7 @@ fun App() {
                 onUnlocked = { showPaywall = false },
             )
             Destination.PremiumIntro -> PremiumIntroScreen(
+                reason = pitchReason,
                 onDismiss = { showPremiumIntro = false },
                 onSeePlans = {
                     showPremiumIntro = false
@@ -336,7 +341,7 @@ fun App() {
                     if (uiState.isSessionActive) timerViewModel.failSession()
                     else timerViewModel.startSession()
                 },
-                onPremium = { showPremiumIntro = true },
+                onPremium = { pitchReason = PitchReason.Shelf; showPremiumIntro = true },
                 onRescue = { showRescueMode = true },
                 onJourney = { showJourney = true },
                 protectedAppCount = protectedAppCount,
@@ -874,9 +879,11 @@ private fun RescueModeScreen(
 
 @Composable
 private fun PremiumIntroScreen(
+    reason: PitchReason,
     onDismiss: () -> Unit,
     onSeePlans: () -> Unit,
 ) {
+    val copy = pitchCopy(reason)
     Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFF090B0A)) {
         Column(
             modifier = Modifier
@@ -903,7 +910,7 @@ private fun PremiumIntroScreen(
             }
             Spacer(Modifier.height(30.dp))
             Text(
-                "You can earn all of this.",
+                copy.title,
                 color = Color.White,
                 fontSize = 34.sp,
                 lineHeight = 41.sp,
@@ -912,7 +919,7 @@ private fun PremiumIntroScreen(
             )
             Spacer(Modifier.height(12.dp))
             Text(
-                "Every squishy unlocks with focused minutes. Pro is for people who would rather not wait.",
+                copy.subtitle,
                 color = Color.White.copy(alpha = 0.62f),
                 fontSize = 15.sp,
                 lineHeight = 21.sp,
