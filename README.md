@@ -102,7 +102,9 @@ The project is developed on Windows and the only Mac available runs Monterey, wh
 
 **The copy is tested.** No exclamation marks, because enthusiasm raises the cost of starting. No failure or streak language, because an abandoned block is a thing that happened, not a verdict. Nothing longer than one line. The rules are assertions in `SquishyVoiceTest`.
 
-**It has a position on streaks.** The app remembers the day it was last opened and nothing else about absence. Three or more days away and the idle line becomes *Been a while. Nothing to catch up on.* — the moment a streak app shows a broken chain is the moment this one says the gap does not count.
+**It has a position on streaks.** The app remembers the day it was last opened and nothing else about absence. Three or more days away and the idle line becomes *Been a while. Nothing to catch up on.* — the moment a streak app shows a broken chain is the moment this one says the gap does not count. The journey's seven-day strip counts minutes per day against your own best day; it cannot break.
+
+**It sends one notification.** When a block ends with the phone face down: *Banked. 15 min of focus.* Scheduled by the platform's alarm so it fires even if the process is gone, re-armed when a block is resumed, cancelled when one is abandoned. Nothing else, ever.
 
 **The icon is the physics.** `tools/make_icon.py` carries a small port of the solver; the outline is the real soft-body silhouette at the peak of a held press, because a settled body is just a circle.
 

@@ -30,7 +30,7 @@ You tell it what you want to finish. It hands back blocks short enough to believ
 
 **It does the thing it asks of you.** Over a focus block the body softens and stops wobbling. The same drag gives about a fifth further at minute twenty-four than at minute one. Then, in the last sixty seconds, it breaks the pattern: the breath quickens and the line changes to *Almost banked.* A session visibly has depth, not just a countdown.
 
-**It has a position on streaks.** Come back after three days away and it says *Been a while. Nothing to catch up on.* That is the moment a streak app shows a broken chain; this one says the gap does not count — and that sentence, like every line the app says, is held to rules by unit tests: no exclamation marks, no failure language, nothing longer than one line.
+**It has a position on streaks.** Come back after three days away and it says *Been a while. Nothing to catch up on.* That is the moment a streak app shows a broken chain; this one says the gap does not count — and that sentence, like every line the app says, is held to rules by unit tests: no exclamation marks, no failure language, nothing longer than one line. The journey screen shows the last seven days as minutes per day, scaled to your own best day, because minutes done cannot break and days missed are nobody's business. When a block ends with the phone face down, one notification says so — "Banked. 15 min of focus." — and that is the only notification the app will ever send.
 
 ### Monetisation: focus is the currency
 
