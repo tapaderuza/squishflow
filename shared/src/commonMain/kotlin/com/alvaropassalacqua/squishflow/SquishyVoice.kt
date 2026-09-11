@@ -39,6 +39,13 @@ object SquishyVoice {
         "Still here.",
     )
 
+    private val closing = listOf(
+        "Last minute. Let it finish.",
+        "Nearly. Stay with it.",
+        "Sixty seconds. Nothing to decide.",
+        "Almost banked.",
+    )
+
     private val completed = listOf(
         "That is one.",
         "Banked.",
@@ -59,17 +66,24 @@ object SquishyVoice {
      * [minutesToNextBody] is how much focus stands between the person and their
      * next squishy; when that is within touching distance it outranks the idle
      * rotation, because anticipation is more useful than another invitation.
+     *
+     * [remainingSeconds] does the same job inside a block: the last minute is
+     * where most abandoned blocks are abandoned, and it deserves a different
+     * sentence from minute three.
      */
     fun line(
         state: SquishyState,
         justCompleted: Boolean,
         completedBlocks: Int,
         minutesToNextBody: Int? = null,
+        remainingSeconds: Int? = null,
     ): String {
         val turn = completedBlocks.coerceAtLeast(0)
+        val isClosing = remainingSeconds != null && remainingSeconds in 1..CLOSING_SECONDS
 
         return when {
             state == SquishyState.COMPRESSED -> interrupted.rotate(turn)
+            state == SquishyState.RELAXING && isClosing -> closing.rotate(turn)
             state == SquishyState.RELAXING -> active.rotate(turn)
             justCompleted -> completed.rotate(turn)
             completedBlocks == 0 -> "First block. Start smaller than you think."
@@ -82,4 +96,7 @@ object SquishyVoice {
     private fun List<String>.rotate(turn: Int): String = this[turn % size]
 
     private const val ANTICIPATION_MINUTES = 20
+
+    /** The stretch of a block that gets its own sentences and a quicker breath. */
+    const val CLOSING_SECONDS = 60
 }

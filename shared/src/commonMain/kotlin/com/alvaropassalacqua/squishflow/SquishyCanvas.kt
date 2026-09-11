@@ -68,12 +68,20 @@ internal fun SquishyStage(
     modifier: Modifier = Modifier,
     material: SquishyMaterial = SquishyMaterial.free,
     reducedMotion: Boolean = false,
+    /** True for the last stretch of a block; the body quickens rather than settles. */
+    closing: Boolean = false,
     stageSize: androidx.compose.ui.unit.Dp = 292.dp,
 ) {
     val settles = state == SquishyState.RELAXING
     // 1.9s at the start of a block down to 2.9s at the end: the same slowing the
-    // body is doing, so the two cues agree instead of arguing.
-    val breathMillis = if (settles) (1900 + 1000 * progress).toInt() else 2800
+    // body is doing, so the two cues agree instead of arguing. The last minute
+    // breaks the pattern on purpose: a body that has been slowing for twenty
+    // minutes and then picks up is a body that knows something is about to happen.
+    val breathMillis = when {
+        closing -> 1300
+        settles -> (1900 + 1000 * progress).toInt()
+        else -> 2800
+    }
     val body = remember { SquishyPhysics(tuning = material.tuning) }
     val mood = rememberFaceMood(reducedMotion)
     val haptics = rememberHaptics()
@@ -144,6 +152,14 @@ internal fun SquishyStage(
             body.stretch(1.9f)
             running = true
         }
+    }
+
+    // Entering the last minute: one straightening-up, then the quicker breath
+    // carries the anticipation on its own.
+    LaunchedEffect(closing) {
+        if (!closing || reducedMotion) return@LaunchedEffect
+        body.stretch(1.3f)
+        running = true
     }
 
     // A completed block, or an interruption, should be felt on the body itself.

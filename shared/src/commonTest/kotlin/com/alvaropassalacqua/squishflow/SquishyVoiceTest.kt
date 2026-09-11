@@ -17,6 +17,7 @@ class SquishyVoiceTest {
                 (0..8).forEach { blocks ->
                     add(SquishyVoice.line(state, justCompleted, blocks))
                     add(SquishyVoice.line(state, justCompleted, blocks, minutesToNextBody = 12))
+                    add(SquishyVoice.line(state, justCompleted, blocks, remainingSeconds = 45))
                 }
             }
         }
@@ -125,5 +126,21 @@ class SquishyVoiceTest {
                 SquishyVoice.line(SquishyState.TENSE, justCompleted = false, completedBlocks = 7),
             )
         }
+    }
+
+    @Test
+    fun theLastMinuteOfABlockGetsItsOwnSentence() {
+        val midway = SquishyVoice.line(SquishyState.RELAXING, false, 2, remainingSeconds = 600)
+        val closing = SquishyVoice.line(SquishyState.RELAXING, false, 2, remainingSeconds = 40)
+        val done = SquishyVoice.line(SquishyState.RELAXING, false, 2, remainingSeconds = 0)
+
+        assertTrue(midway != closing, "The last minute should not read like minute ten")
+        assertEquals(midway, done, "Zero is not a countdown; it is handled by the completed state")
+    }
+
+    @Test
+    fun theLastMinuteOnlyMattersInsideABlock() {
+        val idle = SquishyVoice.line(SquishyState.TENSE, false, 2)
+        assertEquals(idle, SquishyVoice.line(SquishyState.TENSE, false, 2, remainingSeconds = 30))
     }
 }

@@ -517,6 +517,7 @@ private fun FocusScreen(
                     justCompleted = uiState.lastSessionCompleted,
                     completedBlocks = completedBlocks,
                     minutesToNextBody = minutesToNextBody,
+                    remainingSeconds = if (uiState.isSessionActive) uiState.remainingSeconds else null,
                 ),
                 color = Muted,
                 fontSize = 15.sp,
@@ -531,6 +532,7 @@ private fun FocusScreen(
                 accent = accent,
                 material = material,
                 reducedMotion = reducedMotion,
+                closing = uiState.isSessionActive && uiState.remainingSeconds in 1..SquishyVoice.CLOSING_SECONDS,
                 onSquish = {
                     if (!uiState.isSessionActive) {
                         tensionReleased = (tensionReleased + 1).coerceAtMost(3)
