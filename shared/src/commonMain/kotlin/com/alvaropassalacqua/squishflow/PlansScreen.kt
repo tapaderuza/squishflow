@@ -83,6 +83,10 @@ internal fun PlansScreen(
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
+        if (!RevenueCatManager.isConfigured.value) {
+            failedToLoad = true
+            return@LaunchedEffect
+        }
         runCatching { Purchases.sharedInstance.awaitOfferings() }
             .onSuccess { offerings ->
                 val list = offerings.current?.availablePackages.orEmpty()
@@ -239,10 +243,28 @@ internal fun PlansScreen(
                 lineHeight = 15.sp,
                 textAlign = TextAlign.Center,
             )
+            Spacer(Modifier.height(10.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(22.dp)) {
+                PolicyLink("Privacy", Links.PRIVACY)
+                PolicyLink("Terms", Links.TERMS)
+            }
             Spacer(Modifier.height(16.dp))
             Spacer(Modifier.navigationBarsPadding())
         }
     }
+}
+
+@Composable
+private fun PolicyLink(label: String, url: String) {
+    Text(
+        label,
+        color = Color.White.copy(alpha = 0.4f),
+        fontSize = 11.sp,
+        modifier = Modifier
+            .clip(RoundedCornerShape(6.dp))
+            .clickable { openUrl(url) }
+            .padding(horizontal = 6.dp, vertical = 4.dp),
+    )
 }
 
 @Composable

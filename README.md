@@ -126,7 +126,7 @@ The planner is **deterministic and on-device**. It does not learn, and there is 
 
 Android builds on Windows, macOS or Linux. Apple targets are declared only on macOS, so the project builds on the Windows machine it is developed on instead of failing inside the Kotlin/Native compiler. The iOS build itself runs in [GitHub Actions](.github/workflows/ios.yml).
 
-Before any store submission: replace the RevenueCat test key with the platform keys, configure the offerings, sign the release builds, and run sandbox purchases on physical devices. `docs/PRODUCTION_READINESS.md` tracks that gate.
+Before any store submission: put the platform keys where `docs/MONETIZATION_LAUNCH.md` says, create the three products it names, and run a sandbox purchase on a physical device. The release build is already minified, signed from the environment, and refuses the Test Store key.
 
 ## Repository map
 
@@ -146,7 +146,7 @@ Before any store submission: replace the RevenueCat test key with the platform k
 | `shared/src/commonTest/` | 109 tests: physics, materials, planner, voice, synth, access, persistence. |
 | `tools/` | Icon generation, submission screenshots, the iOS walkthrough. |
 | `submission/` | Devpost description, video shot list, icon and screenshots at the required sizes. |
-| `docs/` | Product decisions, production gate, privacy draft. |
+| `docs/` | Product decisions, the launch playbook, and the privacy / terms / support pages served by GitHub Pages. |
 
 ## Licence
 

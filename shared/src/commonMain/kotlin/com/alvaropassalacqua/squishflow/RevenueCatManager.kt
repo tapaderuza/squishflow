@@ -10,6 +10,13 @@ import kotlinx.coroutines.flow.asStateFlow
 
 expect val revenueCatApiKey: String
 
+/**
+ * True for debug binaries, the only place the Test Store may stand in for a
+ * store: the SDK itself detects a non-debuggable build with a test key and
+ * closes the app with a "Wrong API Key" dialog.
+ */
+expect val isDebugBuild: Boolean
+
 object RevenueCatManager {
     /** The entitlement as named in the RevenueCat dashboard. */
     const val PREMIUM_ENTITLEMENT = "Squish Pro"
@@ -21,8 +28,8 @@ object RevenueCatManager {
 
     fun configure(): Boolean {
         if (configured) return true
-        if (revenueCatApiKey.contains("TU_API_KEY") || revenueCatApiKey.isBlank()) return false
-        Purchases.logLevel = LogLevel.INFO
+        if (!isUsableKey(revenueCatApiKey, isDebugBuild)) return false
+        Purchases.logLevel = if (isDebugBuild) LogLevel.INFO else LogLevel.WARN
         Purchases.configure(apiKey = revenueCatApiKey)
         configured = true
         _isConfigured.value = true
@@ -33,6 +40,20 @@ object RevenueCatManager {
         if (!configured) return
         runCatching { Purchases.sharedInstance.awaitCustomerInfo() }
             .onSuccess(::apply)
+    }
+
+    /**
+     * Whether [key] may configure the SDK in this build.
+     *
+     * The Test Store key simulates purchases and, per RevenueCat, crashes the SDK
+     * in production. A release build with it left in gets no store at all, and
+     * the app degrades to "everything is earnable" rather than to a crash on
+     * the plans screen.
+     */
+    internal fun isUsableKey(key: String, debug: Boolean): Boolean = when {
+        key.isBlank() || key.contains("TU_API_KEY") -> false
+        key.startsWith("test_") -> debug
+        else -> true
     }
 
     /**

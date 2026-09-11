@@ -51,4 +51,13 @@ class PlansTest {
         assertTrue(RevenueCatManager.isPro(listOf("squish_pro")), "The dashboard's spelling must not matter")
         assertTrue(!RevenueCatManager.isPro(emptyList()))
     }
+
+    @Test
+    fun theTestStoreKeyOnlyConfiguresDebugBuilds() {
+        assertTrue(RevenueCatManager.isUsableKey("test_abc", debug = true))
+        assertTrue(!RevenueCatManager.isUsableKey("test_abc", debug = false), "A release build must not ship the Test Store")
+        assertTrue(RevenueCatManager.isUsableKey("goog_abc", debug = false))
+        assertTrue(RevenueCatManager.isUsableKey("appl_abc", debug = false))
+        assertTrue(!RevenueCatManager.isUsableKey("", debug = true))
+    }
 }

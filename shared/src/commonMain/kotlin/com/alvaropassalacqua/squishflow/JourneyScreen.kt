@@ -153,6 +153,14 @@ fun JourneyScreen(
                 )
             }
 
+            Spacer(Modifier.height(28.dp))
+            // The store owns cancelling; the app points there instead of pretending.
+            Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+                if (isPremium) FootLink("Manage subscription", manageSubscriptionUrl)
+                FootLink("Support", Links.SUPPORT)
+                FootLink("Privacy", Links.PRIVACY)
+            }
+
             Spacer(Modifier.height(24.dp))
         }
     }
@@ -182,6 +190,19 @@ private fun FocusTotal(minutes: Int) {
             letterSpacing = 1.6.sp,
         )
     }
+}
+
+@Composable
+private fun FootLink(label: String, url: String) {
+    Text(
+        label,
+        color = Muted.copy(alpha = 0.8f),
+        fontSize = 11.sp,
+        modifier = Modifier
+            .clip(RoundedCornerShape(6.dp))
+            .clickable { openUrl(url) }
+            .padding(horizontal = 6.dp, vertical = 4.dp),
+    )
 }
 
 @Composable

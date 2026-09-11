@@ -1,3 +1,6 @@
 TEAM_ID=
 BUNDLE_ID=com.alvaropassalacqua.squishflow
 APP_NAME=Squishflow
+// The appl_ key from RevenueCat. Empty means the public Test Store key, which
+// only debug builds accept.
+REVENUECAT_IOS_KEY=

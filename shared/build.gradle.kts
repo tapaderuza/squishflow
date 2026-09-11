@@ -37,7 +37,6 @@ kotlin {
             implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
             implementation("org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.10.0")
             implementation("com.revenuecat.purchases:purchases-kmp-core:3.3.1")
-            implementation("com.revenuecat.purchases:purchases-kmp-ui:3.3.1")
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
@@ -58,12 +57,25 @@ compose.resources {
     packageOfResClass = "com.alvaropassalacqua.squishflow.generated.resources"
 }
 
+// The RevenueCat key for Android, in order of preference: the environment (CI),
+// gradle.properties / local.properties (a developer machine), then the public
+// Test Store key. The Test Store key only ever simulates purchases; a release
+// build refuses to configure with it (see RevenueCatManager) rather than ship a
+// store that cannot charge anyone.
+val revenueCatAndroidKey: String = System.getenv("REVENUECAT_ANDROID_KEY")
+    ?: (findProperty("revenuecat.android.key") as String?)
+    ?: "test_RrClnxXHuDZzKrnNgwtGSiJgoak"
+
 android {
     namespace = "com.alvaropassalacqua.squishflow.shared"
     compileSdk = (findProperty("android.compileSdk") as String).toInt()
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     defaultConfig {
         minSdk = (findProperty("android.minSdk") as String).toInt()
+        buildConfigField("String", "REVENUECAT_KEY", "\"$revenueCatAndroidKey\"")
+    }
+    buildFeatures {
+        buildConfig = true
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
