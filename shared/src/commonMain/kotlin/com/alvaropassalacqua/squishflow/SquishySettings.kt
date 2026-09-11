@@ -1,5 +1,8 @@
 package com.alvaropassalacqua.squishflow
 
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
+
 /**
  * Small, non-critical preferences that survive a restart.
  *
@@ -55,6 +58,16 @@ expect object SquishySettings {
     fun hasDeclinedProtection(): Boolean
     fun markProtectionDeclined()
 
+    /**
+     * The day the app was last opened, as days since the epoch, or null the first time.
+     *
+     * Kept so a return after a gap can be greeted as a return rather than as
+     * another Tuesday. It is the only thing the app knows about absence, and it
+     * is deliberately not a streak: nothing counts the gap against anybody.
+     */
+    fun lastOpenedEpochDay(): Long?
+    fun markOpened(epochDay: Long)
+
     /** The running block, as (deadline epoch millis, total seconds), or null. */
     fun loadSession(): Pair<Long, Int>?
     fun saveSession(deadlineEpochMillis: Long, totalSeconds: Int)
@@ -86,9 +99,39 @@ data class LifetimeStats(
     }
 }
 
+/**
+ * Whole days since the app was last opened, or null when it never was.
+ *
+ * Calendar days rather than 24-hour periods, so opening it late one night and
+ * early the next morning counts as consecutive days, which is how people count.
+ */
+fun daysAway(lastOpenedEpochDay: Long?, todayEpochDay: Long): Int? =
+    lastOpenedEpochDay?.let { (todayEpochDay - it).coerceAtLeast(0L).toInt() }
+
+/** Record this launch and report how long it has been since the previous one. */
+@OptIn(ExperimentalTime::class)
+fun noteLaunchAndDaysAway(): Int? {
+    val today = Clock.System.now().toEpochMilliseconds() / MILLIS_PER_DAY
+    val away = daysAway(SquishySettings.lastOpenedEpochDay(), today)
+    SquishySettings.markOpened(today)
+    return away
+}
+
+private const val MILLIS_PER_DAY = 86_400_000L
+
 /** The material to start with, falling back to the free one for a first run. */
-fun loadSquishyMaterial(isPremium: Boolean): SquishyMaterial {
-    val stored = SquishyMaterial.fromKey(SquishySettings.loadMaterialKey())
-    // An expired subscription must not leave a Pro body on screen.
-    return if (stored.isPro && !isPremium) SquishyMaterial.free else stored
+fun loadSquishyMaterial(isPremium: Boolean): SquishyMaterial =
+    restoreMaterial(SquishySettings.loadMaterialKey(), SquishySettings.focusedMinutes(), isPremium)
+
+/**
+ * The stored body, if the person still has the right to it.
+ *
+ * Checked through [accessWith] rather than the subscription alone: an expired
+ * subscription must not leave a Pro body on screen, but a body *earned* with
+ * focus is theirs regardless, and an earlier version of this reset it to Jelly
+ * on every cold start, which is the opposite of what earning is for.
+ */
+internal fun restoreMaterial(storedKey: String?, focusedMinutes: Int, isPremium: Boolean): SquishyMaterial {
+    val stored = SquishyMaterial.fromKey(storedKey)
+    return if (stored.accessWith(focusedMinutes, isPremium).isUsable) stored else SquishyMaterial.free
 }

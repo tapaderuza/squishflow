@@ -18,6 +18,7 @@ class SquishyVoiceTest {
                     add(SquishyVoice.line(state, justCompleted, blocks))
                     add(SquishyVoice.line(state, justCompleted, blocks, minutesToNextBody = 12))
                     add(SquishyVoice.line(state, justCompleted, blocks, remainingSeconds = 45))
+                    add(SquishyVoice.line(state, justCompleted, blocks, daysAway = 9))
                 }
             }
         }
@@ -142,5 +143,24 @@ class SquishyVoiceTest {
     fun theLastMinuteOnlyMattersInsideABlock() {
         val idle = SquishyVoice.line(SquishyState.TENSE, false, 2)
         assertEquals(idle, SquishyVoice.line(SquishyState.TENSE, false, 2, remainingSeconds = 30))
+    }
+
+    @Test
+    fun aReturnAfterAGapIsGreetedWithoutAScoreboard() {
+        val usual = SquishyVoice.line(SquishyState.TENSE, false, 4)
+        val back = SquishyVoice.line(SquishyState.TENSE, false, 4, daysAway = 5)
+
+        assertTrue(back != usual, "Coming back after days away deserves its own sentence")
+        assertEquals(usual, SquishyVoice.line(SquishyState.TENSE, false, 4, daysAway = 1),
+            "A day off is not a return")
+        assertEquals(usual, SquishyVoice.line(SquishyState.TENSE, false, 4, daysAway = 0))
+    }
+
+    @Test
+    fun aFirstBlockOutranksAReturn() {
+        // Somebody who installed the app and came back a week later has not
+        // returned to anything yet.
+        val first = SquishyVoice.line(SquishyState.TENSE, false, 0)
+        assertEquals(first, SquishyVoice.line(SquishyState.TENSE, false, 0, daysAway = 10))
     }
 }

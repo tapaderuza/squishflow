@@ -133,3 +133,17 @@ class MaterialUnlockTest {
         assertEquals(mochi, materialUnlockedBetween(mochi.unlockMinutes - 1, mochi.unlockMinutes))
     }
 }
+
+class RestoreMaterialTest {
+    @Test fun anEarnedBodySurvivesAColdStartWithoutASubscription() =
+        assertEquals(SquishyMaterial.STRESS_BALL, restoreMaterial("STRESS_BALL", focusedMinutes = 60, isPremium = false))
+
+    @Test fun aLapsedSubscriptionDropsABodyThatWasOnlyPurchased() =
+        assertEquals(SquishyMaterial.JELLY, restoreMaterial("BUBBLE", focusedMinutes = 60, isPremium = false))
+
+    @Test fun aPurchasedBodyStaysWhileTheSubscriptionIsLive() =
+        assertEquals(SquishyMaterial.BUBBLE, restoreMaterial("BUBBLE", focusedMinutes = 0, isPremium = true))
+
+    @Test fun nothingStoredMeansTheFreeBody() =
+        assertEquals(SquishyMaterial.JELLY, restoreMaterial(null, focusedMinutes = 900, isPremium = true))
+}

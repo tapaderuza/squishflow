@@ -39,6 +39,13 @@ object SquishyVoice {
         "Still here.",
     )
 
+    private val returning = listOf(
+        "Been a while. Nothing to catch up on.",
+        "Back. That was the hard part.",
+        "No catching up. Just one block.",
+        "The gap does not count. This does.",
+    )
+
     private val closing = listOf(
         "Last minute. Let it finish.",
         "Nearly. Stay with it.",
@@ -70,6 +77,10 @@ object SquishyVoice {
      * [remainingSeconds] does the same job inside a block: the last minute is
      * where most abandoned blocks are abandoned, and it deserves a different
      * sentence from minute three.
+     *
+     * [daysAway] is how long since the app was last opened. A return after a gap
+     * is the moment a streak app would show a broken chain; this one says the
+     * gap does not count, because that is the product's whole position.
      */
     fun line(
         state: SquishyState,
@@ -77,6 +88,7 @@ object SquishyVoice {
         completedBlocks: Int,
         minutesToNextBody: Int? = null,
         remainingSeconds: Int? = null,
+        daysAway: Int? = null,
     ): String {
         val turn = completedBlocks.coerceAtLeast(0)
         val isClosing = remainingSeconds != null && remainingSeconds in 1..CLOSING_SECONDS
@@ -87,6 +99,7 @@ object SquishyVoice {
             state == SquishyState.RELAXING -> active.rotate(turn)
             justCompleted -> completed.rotate(turn)
             completedBlocks == 0 -> "First block. Start smaller than you think."
+            daysAway != null && daysAway >= RETURNING_DAYS -> returning.rotate(turn)
             minutesToNextBody != null && minutesToNextBody in 1..ANTICIPATION_MINUTES ->
                 "$minutesToNextBody more minutes to the next squishy."
             else -> idle.rotate(turn)
@@ -99,4 +112,7 @@ object SquishyVoice {
 
     /** The stretch of a block that gets its own sentences and a quicker breath. */
     const val CLOSING_SECONDS = 60
+
+    /** Days of absence after which opening the app is greeted as a return. */
+    const val RETURNING_DAYS = 3
 }

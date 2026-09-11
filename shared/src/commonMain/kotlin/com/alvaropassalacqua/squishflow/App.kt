@@ -73,6 +73,7 @@ fun App() {
         var conversionPromptShown by remember { mutableStateOf(SquishySettings.hasSeenConversionPrompt()) }
         val isPremium by RevenueCatManager.isPremium.collectAsStateWithLifecycle()
         var lifetime by remember { mutableStateOf(LifetimeStats.load()) }
+        val daysAway = remember { noteLaunchAndDaysAway() }
         var material by remember { mutableStateOf(loadSquishyMaterial(isPremium = false)) }
         val restoredMission = remember { deserializeMission(MissionPersistence.load()) }
         var mission by remember { mutableStateOf(restoredMission?.mission) }
@@ -327,6 +328,7 @@ fun App() {
                     ?.let { it.unlockMinutes - lifetime.focusedMinutes },
                 reducedMotion = reducedMotion,
                 isTrialling = trialMaterial != null,
+                daysAway = daysAway,
                 onDurationSelected = timerViewModel::selectDuration,
                 onPrimaryAction = {
                     if (uiState.isSessionActive) timerViewModel.failSession()
@@ -465,6 +467,7 @@ private fun FocusScreen(
     minutesToNextBody: Int?,
     reducedMotion: Boolean,
     isTrialling: Boolean,
+    daysAway: Int?,
     onDurationSelected: (Int) -> Unit,
     onPrimaryAction: () -> Unit,
     onPremium: () -> Unit,
@@ -518,6 +521,7 @@ private fun FocusScreen(
                     completedBlocks = completedBlocks,
                     minutesToNextBody = minutesToNextBody,
                     remainingSeconds = if (uiState.isSessionActive) uiState.remainingSeconds else null,
+                    daysAway = daysAway,
                 ),
                 color = Muted,
                 fontSize = 15.sp,

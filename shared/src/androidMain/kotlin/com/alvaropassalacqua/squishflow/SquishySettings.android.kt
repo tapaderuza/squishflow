@@ -11,6 +11,7 @@ actual object SquishySettings {
     private const val COMPLETED = "completed_blocks_v1"
     private const val FAILED = "failed_blocks_v1"
     private const val DECLINED = "protection_declined_v1"
+    private const val LAST_OPENED = "last_opened_epoch_day_v1"
     private const val SESSION_DEADLINE = "session_deadline_epoch_v1"
     private const val SESSION_TOTAL = "session_total_seconds_v1"
 
@@ -57,6 +58,13 @@ actual object SquishySettings {
 
     actual fun markProtectionDeclined() {
         prefs()?.edit()?.putBoolean(DECLINED, true)?.apply()
+    }
+
+    actual fun lastOpenedEpochDay(): Long? =
+        prefs()?.takeIf { it.contains(LAST_OPENED) }?.getLong(LAST_OPENED, 0L)
+
+    actual fun markOpened(epochDay: Long) {
+        prefs()?.edit()?.putLong(LAST_OPENED, epochDay)?.apply()
     }
 
     actual fun loadSession(): Pair<Long, Int>? {

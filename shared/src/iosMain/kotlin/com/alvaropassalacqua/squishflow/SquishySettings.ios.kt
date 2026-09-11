@@ -10,6 +10,7 @@ actual object SquishySettings {
     private const val COMPLETED = "squish_completed_blocks_v1"
     private const val FAILED = "squish_failed_blocks_v1"
     private const val DECLINED = "squish_protection_declined_v1"
+    private const val LAST_OPENED = "squish_last_opened_epoch_day_v1"
     private const val SESSION_DEADLINE = "squish_session_deadline_v1"
     private const val SESSION_TOTAL = "squish_session_total_v1"
 
@@ -60,6 +61,16 @@ actual object SquishySettings {
 
     actual fun markProtectionDeclined() {
         NSUserDefaults.standardUserDefaults.setBool(true, DECLINED)
+    }
+
+    actual fun lastOpenedEpochDay(): Long? {
+        val defaults = NSUserDefaults.standardUserDefaults
+        if (defaults.objectForKey(LAST_OPENED) == null) return null
+        return defaults.integerForKey(LAST_OPENED)
+    }
+
+    actual fun markOpened(epochDay: Long) {
+        NSUserDefaults.standardUserDefaults.setInteger(epochDay, LAST_OPENED)
     }
 
     actual fun loadSession(): Pair<Long, Int>? {

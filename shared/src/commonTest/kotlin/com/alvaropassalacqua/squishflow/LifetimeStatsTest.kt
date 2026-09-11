@@ -41,3 +41,10 @@ class LifetimeStatsTest {
         assertEquals("3h 5m", shortRemaining(185))
     }
 }
+
+class DaysAwayTest {
+    @Test fun neverOpenedIsNotAnAbsence() = assertEquals(null, daysAway(null, 20_000L))
+    @Test fun sameDayIsZero() = assertEquals(0, daysAway(20_000L, 20_000L))
+    @Test fun countsCalendarDays() = assertEquals(4, daysAway(20_000L, 20_004L))
+    @Test fun aClockSetBackwardsIsNotANegativeAbsence() = assertEquals(0, daysAway(20_010L, 20_000L))
+}
