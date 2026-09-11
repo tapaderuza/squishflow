@@ -109,13 +109,22 @@ fun JourneyScreen(
             )
             Spacer(Modifier.height(12.dp))
 
+            // The shelf is also a listening booth: every material answers a tap in
+            // its own voice, locked or not, so the difference between bodies is
+            // something heard before it is something paid for.
+            val audio = rememberSquishAudio()
+            val haptics = rememberHaptics()
             SquishyMaterial.entries.forEach { material ->
                 val access = material.accessWith(stats.focusedMinutes, isPremium)
                 CollectionRow(
                     material = material,
                     access = access,
                     isSelected = material == selected,
-                    onClick = { if (access.isUsable) onSelect(material) else onTryLocked(material) },
+                    onClick = {
+                        haptics.play(HapticAccent.TOUCH)
+                        audio.play(SquishGesture.SQUEEZE, intensity = 0.8f, material = material)
+                        if (access.isUsable) onSelect(material) else onTryLocked(material)
+                    },
                 )
                 Spacer(Modifier.height(8.dp))
             }
