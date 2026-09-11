@@ -1,57 +1,85 @@
-# Squish Shipaton 2026 strategy
+# Squishflow — Shipaton 2026 strategy
 
-## Product claim
+Rewritten 12 September 2026 after reading the 2024 and 2025 results, the 2026
+rules and RevenueCat's own preparation guide. Sources at the end.
 
-> We didn't build another Pomodoro. We built a companion that turns a vague goal into focus blocks you can actually complete.
+## What the last two years reward
 
-Until a real server-backed model is deployed, say **adaptive on-device planner**, not “learns how you focus”. Squishy reflects session state; it never diagnoses mental state.
+- **Small and single-purpose beat sprawling.** RevenueCat says it in its prep
+  guide, and the winners agree: Momental (KMP 1st, 2025) is a one-tap
+  meditation timer; Flowmino (Design 1st, 2024) is time blocks plus Screen
+  Time. Nobody won with a platform.
+- **Design winners are "delightful to look at and use": animation, gesture,
+  haptics.** Flowmino won on "gentle animations throughout, combined with
+  fantastic use of haptics". Dayloop (2025) on precision engineering and a
+  privacy-first stance. This is exactly Squishflow's lane: a physics body,
+  a synthesised voice, pressure-tied haptics, a copy voice held by tests.
+- **HAMM winners have a *story* about money, not just a paywall.** Vector
+  Guard's "1:50 justice model" (each premium funds 50 free accounts) won
+  2025; the criteria ask for clarity, diversity of streams, and a reason the
+  model is *ours*. Squishflow's story: focus is the currency, every body is
+  earnable, Pro is the shortcut plus one utility (protect every app), and
+  the release refuses a fake store.
+- **Context-aware paywall messaging** was singled out for SkillMe (Design
+  2nd, 2025). The pitch now opens with the sentence the moment deserves.
+- **The video should show the purchase moment prominently** (prep guide).
+  Ours shows the shelf, the six-second trial and the plans at 1:00–1:16.
+- **Most losses come from missing the store deadline, not weak apps.**
 
-## Design contract
+## The hard requirement most categories share
 
-- The mission is visible and reviewable before the timer starts.
-- Squishy communicates state using form, motion, label, and color.
-- Failure language is neutral; returning matters more than perfect streaks.
-- Reflection takes one tap and visibly changes the next recommendation.
-- Reduced-motion and screen-reader behavior are release gates.
+Every category except Next Gen needs the app **published on the App Store,
+Google Play or the Samsung Galaxy Store between 1 August and 30 September
+2026**, plus a free trial or a promo code for judges.
 
-## Monetization
+Where that leaves us on 12 September, 18 days out:
 
-Free: base Squishy, manual sessions, seven-day history, and three adaptive plans per day. Pro: unlimited planning/adaptation, full insights, Deep Focus, soundscapes, and personality packs.
+| Route | Cost | Feasible by 30 Sep? | Why |
+|---|---|---|---|
+| **Next Gen (student)** | 0 | **Yes, today** | Video + public repo. Already complete. |
+| **App Store via CI** | 99 $/yr | **Yes, if enrolment starts now** | Enrolment 1–3 days (ID check in the Apple Developer app on the iPhone), first review 1–3 days. `ios-release.yml` archives and uploads with cloud signing; no capable Mac needed. |
+| Google Play | 25 $ | **No** | New personal accounts must run a closed test with 12 testers for 14 continuous days before production. Start it anyway for a later real launch. |
+| Samsung Galaxy Store | 0 | Unclear | Counts as "published" in the rules, but RevenueCat has no Samsung billing; purchases would need Web Billing and Samsung's policy on external payment is untested. Not worth the risk. |
 
-Show the paywall only after value: third completed session, fourth adaptive plan, old history, or a selected Pro cosmetic. Never interrupt an active session or celebration. Offer monthly and annual plans through `squish_pro`.
+**Decision:** Next Gen is the floor. The App Store is the one door that opens
+HAMM, Design and the Grand Prize in time. Kotlin Multiplatform Reach needs
+both stores, so it is out for 2026 unless Play's tester gate is already
+running.
 
-## Metrics
+## Category map
 
-North Star: completed focus sessions per weekly active user.
+| Category | Fit | What the submission must say |
+|---|---|---|
+| Next Gen | Primary | Student built, open source, video. |
+| Design Award | Strong | Physics body, per-material voice, wake-up / stretch / last minute, gesture + haptics, tested copy. Needs the App Store release. |
+| HAMM | Strong story | Focus is the currency; Pro = now + protect every app; three price points; release refuses the Test Store; trial surfaced in plain words; restore, privacy, terms. Needs the release. |
+| Grand Prize | Long shot | Traction during the event. Only if the App Store release lands early and something is posted about it. |
+| Ship Kotlin Everywhere | Out this year | Requires both stores live. Say in the text that the codebase is one and the Android build is store-ready. |
 
-Events (never attach free-form goal text): `mission_created`, `mission_accepted`, `focus_started`, `focus_completed`, `focus_abandoned`, `session_rated`, `recommendation_accepted`, `recommendation_changed`, `paywall_viewed`, `purchase_started`, `purchase_completed`, and `purchase_restored`.
+## Video (2:00) — what is in it now and why
 
-Initial targets: activation >55%, completion >65%, time-to-first-focus <30 seconds, and crash-free sessions >99%.
+0:00 hook · 0:07 the problem · 0:17 planner · 0:30 the physics body ·
+0:48 it settles over a block · 0:59 shelf, six-second trial, pitch, plans
+(the purchase moment) · 1:16 earned body, "yours to keep" · 1:25 one
+codebase, iPhone and Android · 1:40 synthesised voices per material ·
+1:52 the name.
 
-## Two-minute demo
+Regenerate with `submission/video/narrate.py` (cues) → `record_take2.py`
+(shelf take, on the emulator) → `build.py`.
 
-1. Hook: “A goal is usually too large to start.”
-2. Type a client presentation + exam goal.
-3. Reveal and approve the generated mission.
-4. Start block one; Squishy shifts from tense coral to calm sage.
-5. Trigger a protected-app conscious pause and choose to return.
-6. Complete the accelerated session and rate it “too much.”
-7. Reveal the shorter next recommendation with its explanation.
-8. Show RevenueCat Pro unlocking unlimited adaptive plans and personality packs.
-9. End on Android and iOS: “One shared Kotlin companion. Two stores.”
+## How people buy it
 
-The first two minutes must show the product in use and name Design, HAMM, Kotlin Everywhere, and Build in Public.
+In-app, through the store they installed from: monthly, yearly (preselected,
+per-month price explained, a store trial shown when configured) or
+lifetime. The plans screen is the app's own; RevenueCat handles offerings,
+purchase, restore and the entitlement. Nothing is sold outside the stores;
+nothing is gated that was earned. `docs/MONETIZATION_LAUNCH.md` is the
+step-by-step for accounts, products and keys.
 
-## Build in public
+## Sources
 
-Publish decisions and measured learning: goal decomposition, Squishy states, duration experiments, respectful paywall, KMP architecture, and anonymized metrics. Use `#Shipaton` and `#BuildInPublic`.
-
-## Hard release gate
-
-- Real RevenueCat keys, offerings, purchase and restore tested.
-- Signed Android AAB and App Store/TestFlight build.
-- Mission/session persistence across process death.
-- Real-device background, interruption and clock tests.
-- TalkBack/VoiceOver, dynamic text, contrast and reduced motion.
-- Privacy policy covering Accessibility, camera, purchases and analytics.
-- Current screenshots and complete Android/iOS walkthrough.
+- RevenueCat, "Shipaton 2025 Winners": https://www.revenuecat.com/blog/company/shipaton-2025-winners
+- RevenueCat, "2024 Ship-a-ton Winners": https://www.revenuecat.com/blog/company/2024-ship-a-ton-winners
+- Shipaton 2026 rules on Devpost: https://revenuecat-shipaton-2026.devpost.com/rules
+- RevenueCat Codelabs, "Shipaton 2026 Preparation Guide": https://revenuecat.github.io/codelabs/shipaton-2026-prep.html
+- Flowmino on Devpost (Design Award 2024): https://devpost.com/software/flowmino
