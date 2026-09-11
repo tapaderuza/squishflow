@@ -32,7 +32,7 @@ object RevenueCatManager {
         runCatching {
             Purchases.sharedInstance.awaitCustomerInfo()
                 .entitlements
-                ?.get(PREMIUM_ENTITLEMENT)
+                .get(PREMIUM_ENTITLEMENT)
                 ?.isActive == true
         }.onSuccess { _isPremium.value = it }
     }

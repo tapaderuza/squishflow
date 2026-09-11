@@ -12,6 +12,11 @@ plugins {
 val isMacOs: Boolean = System.getProperty("os.name").orEmpty().startsWith("Mac", ignoreCase = true)
 
 kotlin {
+    // expect/actual objects are still flagged Beta and warn on every declaration.
+    // The pattern is load-bearing here — it is how persistence, haptics and audio
+    // differ per platform — so the warning is acknowledged rather than endured.
+    compilerOptions.freeCompilerArgs.add("-Xexpect-actual-classes")
+
     androidTarget()
     if (isMacOs) {
         listOf(iosArm64(), iosSimulatorArm64()).forEach { target ->

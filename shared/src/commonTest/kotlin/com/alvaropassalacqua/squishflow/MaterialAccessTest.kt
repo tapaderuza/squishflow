@@ -49,7 +49,7 @@ class MaterialAccessTest {
         val access = material.accessWith(focusedMinutes = 30, isPremium = false)
 
         assertTrue(access is MaterialAccess.Locked)
-        assertEquals(30, (access as MaterialAccess.Locked).focusedMinutes)
+        assertEquals(30, access.focusedMinutes)
     }
 
     @Test
@@ -58,7 +58,7 @@ class MaterialAccessTest {
         val halfway = material.accessWith(material.unlockMinutes / 2, isPremium = false)
 
         assertTrue(halfway is MaterialAccess.Locked)
-        val locked = halfway as MaterialAccess.Locked
+        val locked = halfway
         assertTrue(locked.progress in 0.45f..0.55f, "Expected about half, got ${locked.progress}")
         assertEquals(material.unlockMinutes / 2, locked.remainingMinutes)
     }
