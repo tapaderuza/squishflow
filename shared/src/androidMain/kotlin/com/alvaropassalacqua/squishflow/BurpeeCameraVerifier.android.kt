@@ -209,7 +209,7 @@ private fun LiveBurpeeCamera(
                     Surface(
                         modifier = Modifier.size(if (index < progress) 10.dp else 7.dp),
                         shape = androidx.compose.foundation.shape.CircleShape,
-                        color = if (index < progress) Color(0xFF8FD0A7) else Color.White.copy(alpha = 0.35f),
+                        color = if (index < progress) Sage else Color.White.copy(alpha = 0.35f),
                     ) {}
                 }
             }

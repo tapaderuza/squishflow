@@ -381,7 +381,7 @@ private fun ProtectionSetupScreen(
                 onClick = onEnable,
                 modifier = Modifier.fillMaxWidth().height(58.dp),
                 shape = RoundedCornerShape(29.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Ink, contentColor = Color(0xFF151713)),
+                colors = ButtonDefaults.buttonColors(containerColor = Ink, contentColor = OnLight),
             ) {
                 Text("Enable protection on Android", fontWeight = FontWeight.Bold)
             }
@@ -439,7 +439,7 @@ private fun FocusInterventionScreen(
                 onClick = onReturn,
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(28.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Ink, contentColor = Color(0xFF151713)),
+                colors = ButtonDefaults.buttonColors(containerColor = Ink, contentColor = OnLight),
             ) { Text("Back to what matters", fontWeight = FontWeight.Bold) }
             TextButton(onClick = onOpenBriefly, enabled = squishes >= 3) {
                 Text(
@@ -883,7 +883,7 @@ private fun PremiumIntroScreen(
                 modifier = Modifier
                     .size(92.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFFFD86B)),
+                    .background(Premium),
                 contentAlignment = Alignment.Center,
             ) {
                 Text("PRO", color = Ink, fontSize = 20.sp, fontWeight = FontWeight.Black)
@@ -915,8 +915,8 @@ private fun PremiumIntroScreen(
                 modifier = Modifier.fillMaxWidth().height(58.dp),
                 shape = RoundedCornerShape(29.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFFFD86B),
-                    contentColor = Color(0xFF151713),
+                    containerColor = Premium,
+                    contentColor = OnLight,
                 ),
             ) {
                 Text("See Premium plans", fontWeight = FontWeight.Bold)
@@ -939,7 +939,7 @@ private fun PremiumBenefit(number: String, title: String, body: String) {
         modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
         verticalAlignment = Alignment.Top,
     ) {
-        Text(number, color = Color(0xFFFFD86B), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        Text(number, color = Premium, fontSize = 11.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.width(18.dp))
         Column {
             Text(title, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)

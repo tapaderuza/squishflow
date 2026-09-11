@@ -37,10 +37,26 @@ internal val PaperMuted = Color(0x8C101310)
 
 /** Body fill for each state, brightest at the centre of the radial gradient. */
 internal fun SquishyState.bodyTint(): Color = when (this) {
-    SquishyState.TENSE -> Color(0xFFFF806C)
-    SquishyState.RELAXING -> Color(0xFF8DD6AA)
-    SquishyState.COMPRESSED -> Color(0xFFC5A8F2)
+    SquishyState.TENSE -> Coral
+    SquishyState.RELAXING -> Sage
+    SquishyState.COMPRESSED -> Lavender
 }
+
+/**
+ * Ink dark enough to read on any body colour, used for the face and for text
+ * sitting on a light button. Deliberately not [Cream]: the face wants a touch
+ * more warmth than the app's ground.
+ */
+internal val OnLight = Color(0xFF151713)
+
+/** The blush. Only ever appears on a settled companion. */
+internal val Blush = Color(0xFFFF8B86)
+
+/** The one warm accent in the product, reserved entirely for the upgrade path. */
+internal val Premium = Color(0xFFFFD86B)
+
+/** Text on a sage surface, dark enough to pass contrast on the accent. */
+internal val OnSage = Color(0xFF102016)
 
 /** Shaded edge of the body, used at the far end of the same gradient. */
 internal fun SquishyState.bodyShadow(): Color = when (this) {

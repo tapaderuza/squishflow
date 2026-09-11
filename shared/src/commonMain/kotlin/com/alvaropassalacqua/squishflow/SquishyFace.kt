@@ -21,8 +21,6 @@ import kotlinx.coroutines.delay
 import kotlin.math.abs
 import kotlin.random.Random
 
-private val FaceInk = Color(0xFF151713)
-
 /**
  * What the face is doing that nobody asked it to.
  *
@@ -134,18 +132,18 @@ internal fun SquishyFace(
 
         val blushAlpha = if (state == SquishyState.RELAXING) 0.42f else 0.25f
         drawCircle(
-            Color(0xFFFF8B86).copy(alpha = blushAlpha),
+            Blush.copy(alpha = blushAlpha),
             radius = 10.dp.toPx(),
             center = Offset(size.width * 0.35f + lookX, size.height * 0.52f + lookY),
         )
         drawCircle(
-            Color(0xFFFF8B86).copy(alpha = blushAlpha),
+            Blush.copy(alpha = blushAlpha),
             radius = 10.dp.toPx(),
             center = Offset(size.width * 0.65f + lookX, size.height * 0.52f + lookY),
         )
 
         drawArc(
-            color = FaceInk,
+            color = OnLight,
             startAngle = if (state == SquishyState.COMPRESSED) 205f else 20f,
             sweepAngle = if (state == SquishyState.RELAXING) 140f else 130f,
             useCenter = false,
@@ -169,7 +167,7 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawEye(
 ) {
     val height = radius * 2f * open
     drawOval(
-        color = FaceInk,
+        color = OnLight,
         topLeft = Offset(centre.x - radius, centre.y - height / 2f),
         size = Size(radius * 2f, height),
     )
@@ -186,14 +184,14 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawEye(
 private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawCross(centre: Offset, radius: Float) {
     val arm = radius * 0.95f
     drawLine(
-        FaceInk,
+        OnLight,
         start = centre + Offset(-arm, -arm * 0.6f),
         end = centre + Offset(arm, arm * 0.6f),
         strokeWidth = 4.dp.toPx(),
         cap = StrokeCap.Round,
     )
     drawLine(
-        FaceInk,
+        OnLight,
         start = centre + Offset(-arm, arm * 0.6f),
         end = centre + Offset(arm, -arm * 0.6f),
         strokeWidth = 4.dp.toPx(),

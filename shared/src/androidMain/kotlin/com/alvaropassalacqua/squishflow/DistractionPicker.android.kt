@@ -91,12 +91,12 @@ actual fun DistractionPicker(onContinue: (List<String>) -> Unit) {
     }
     var selected by remember { mutableStateOf(FocusPreferences.selectedPackages()) }
     var showDisclosure by remember { mutableStateOf(false) }
-    val ink = Color(0xFFF2F0E9)
-    val muted = Color(0xFF969991)
-    val surface = Color(0xFF171A18)
-    val accent = Color(0xFF8DD6AA)
+    val ink = Ink
+    val muted = Muted
+    val surface = SoftWhite
+    val accent = Sage
 
-    Surface(Modifier.fillMaxSize(), color = Color(0xFF0C0E0D)) {
+    Surface(Modifier.fillMaxSize(), color = Cream) {
         Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(24.dp)) {
             Spacer(Modifier.height(16.dp))
             Text("01 / 01", color = accent, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.8.sp)
@@ -124,7 +124,7 @@ actual fun DistractionPicker(onContinue: (List<String>) -> Unit) {
                             Modifier.size(34.dp).background(if (active) accent else ink.copy(alpha = 0.08f), CircleShape),
                             contentAlignment = Alignment.Center,
                         ) {
-                            Text(app.label.take(1).uppercase(), color = if (active) Color(0xFF102016) else ink, fontWeight = FontWeight.Black)
+                            Text(app.label.take(1).uppercase(), color = if (active) OnSage else ink, fontWeight = FontWeight.Black)
                         }
                         Spacer(Modifier.width(14.dp))
                         Text(app.label, color = ink, fontSize = 15.sp, modifier = Modifier.weight(1f))
@@ -132,7 +132,7 @@ actual fun DistractionPicker(onContinue: (List<String>) -> Unit) {
                             Modifier.size(20.dp).background(if (active) accent else Color.Transparent, CircleShape),
                             contentAlignment = Alignment.Center,
                         ) {
-                            if (active) Text("✓", color = Color(0xFF102016), fontSize = 12.sp, fontWeight = FontWeight.Black)
+                            if (active) Text("✓", color = OnSage, fontSize = 12.sp, fontWeight = FontWeight.Black)
                         }
                     }
                 }
@@ -145,7 +145,7 @@ actual fun DistractionPicker(onContinue: (List<String>) -> Unit) {
                 shape = RoundedCornerShape(29.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = ink,
-                    contentColor = Color(0xFF151713),
+                    contentColor = OnLight,
                     disabledContainerColor = surface,
                     disabledContentColor = muted,
                 ),
@@ -161,9 +161,9 @@ actual fun DistractionPicker(onContinue: (List<String>) -> Unit) {
     if (showDisclosure) {
         AlertDialog(
             onDismissRequest = { showDisclosure = false },
-            containerColor = Color(0xFF171A18),
-            titleContentColor = Color(0xFFF2F0E9),
-            textContentColor = Color(0xFFB8BBB3),
+            containerColor = SoftWhite,
+            titleContentColor = Ink,
+            textContentColor = Ink.copy(alpha = 0.72f),
             title = { Text("Focus protection") },
             text = {
                 Text(
@@ -173,7 +173,7 @@ actual fun DistractionPicker(onContinue: (List<String>) -> Unit) {
             },
             dismissButton = {
                 TextButton(onClick = { showDisclosure = false }) {
-                    Text("Not now", color = Color(0xFF969991))
+                    Text("Not now", color = Muted)
                 }
             },
             confirmButton = {
@@ -184,8 +184,8 @@ actual fun DistractionPicker(onContinue: (List<String>) -> Unit) {
 
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF8DD6AA),
-                        contentColor = Color(0xFF102016),
+                        containerColor = Sage,
+                        contentColor = OnSage,
                     ),
                 ) { Text("I understand — continue", fontWeight = FontWeight.Bold) }
             },

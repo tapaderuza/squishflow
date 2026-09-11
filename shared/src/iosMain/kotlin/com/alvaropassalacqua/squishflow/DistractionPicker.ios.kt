@@ -37,21 +37,21 @@ actual object FocusPreferences {
 actual fun DistractionPicker(onContinue: (List<String>) -> Unit) {
     val choices = listOf("Social", "Video", "Messaging", "News", "Games", "Shopping")
     var selected by remember { mutableStateOf(setOf<String>()) }
-    Surface(Modifier.fillMaxSize(), color = Color(0xFF0C0E0D)) {
+    Surface(Modifier.fillMaxSize(), color = Cream) {
         Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(24.dp)) {
             Spacer(Modifier.height(24.dp))
-            Text("What steals your focus?", color = Color(0xFFF2F0E9), fontSize = 32.sp, fontWeight = FontWeight.Light)
+            Text("What steals your focus?", color = Ink, fontSize = 32.sp, fontWeight = FontWeight.Light)
             Spacer(Modifier.height(10.dp))
-            Text("Pick your usual distractions. Per-app selection arrives with Family Controls.", color = Color(0xFF969991), fontSize = 14.sp)
+            Text("Pick your usual distractions. Per-app selection arrives with Family Controls.", color = Muted, fontSize = 14.sp)
             Spacer(Modifier.height(28.dp))
             choices.forEach { choice ->
                 val active = choice in selected
                 Text(
                     choice,
-                    color = Color(0xFFF2F0E9),
+                    color = Ink,
                     modifier = Modifier.fillMaxWidth()
                         .padding(vertical = 4.dp)
-                        .background(if (active) Color(0xFF8DD6AA).copy(alpha = 0.15f) else Color(0xFF171A18), RoundedCornerShape(18.dp))
+                        .background(if (active) Sage.copy(alpha = 0.15f) else SoftWhite, RoundedCornerShape(18.dp))
                         .clickable { selected = if (active) selected - choice else selected + choice }
                         .padding(18.dp),
                 )
