@@ -81,5 +81,5 @@ kotlin, kotlin-multiplatform, compose-multiplatform, revenuecat, android, ios, s
 ## Files to attach
 
 - `submission/app-icon-1024.png` — app icon, 1024 × 1024
-- `submission/screenshots/01…07.png` — seven screenshots at 1179 × 2556, no device frame, in the order a judge should read them
+- `submission/screenshots/01…08.png` — eight screenshots at 1179 × 2556, no device frame, in the order a judge should read them
 - Demo video — see `submission/VIDEO.md`
