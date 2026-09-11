@@ -2,6 +2,12 @@ package com.alvaropassalacqua.squishflow
 
 import android.content.Intent
 import android.content.Context
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.ImageBitmap
+import android.graphics.drawable.Drawable
+import android.graphics.Canvas as AndroidCanvas
+import android.graphics.Bitmap
 import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -70,7 +76,26 @@ actual object FocusPreferences {
     }
 }
 
-private data class DistractionApp(val label: String, val packageName: String)
+private data class DistractionApp(
+    val label: String,
+    val packageName: String,
+    val icon: ImageBitmap?,
+)
+
+/**
+ * The launcher icon, as something Compose can draw.
+ *
+ * Adaptive icons report no intrinsic size, so they have to be given a canvas
+ * rather than asked how big they are. Anything that fails to load falls back to
+ * the initial, which is what the whole list used to look like.
+ */
+private fun Drawable.toIconBitmap(sizePx: Int): ImageBitmap? = runCatching {
+    val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
+    val canvas = AndroidCanvas(bitmap)
+    setBounds(0, 0, sizePx, sizePx)
+    draw(canvas)
+    bitmap.asImageBitmap()
+}.getOrNull()
 
 @Composable
 actual fun DistractionPicker(onContinue: (List<String>) -> Unit) {
@@ -83,6 +108,9 @@ actual fun DistractionPicker(onContinue: (List<String>) -> Unit) {
                 DistractionApp(
                     label = it.loadLabel(context.packageManager).toString(),
                     packageName = it.activityInfo.packageName,
+                    icon = runCatching { it.loadIcon(context.packageManager) }
+                        .getOrNull()
+                        ?.toIconBitmap(ICON_PX),
                 )
             }
             .filter { it.packageName != context.packageName }
@@ -99,8 +127,6 @@ actual fun DistractionPicker(onContinue: (List<String>) -> Unit) {
     Surface(Modifier.fillMaxSize(), color = Cream) {
         Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(24.dp)) {
             Spacer(Modifier.height(16.dp))
-            Text("01 / 01", color = accent, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.8.sp)
-            Spacer(Modifier.height(22.dp))
             Text("What steals your focus?", color = ink, fontSize = 32.sp, fontWeight = FontWeight.Light)
             Spacer(Modifier.height(10.dp))
             Text(
@@ -121,10 +147,28 @@ actual fun DistractionPicker(onContinue: (List<String>) -> Unit) {
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Box(
-                            Modifier.size(34.dp).background(if (active) accent else ink.copy(alpha = 0.08f), CircleShape),
+                            Modifier
+                                .size(34.dp)
+                                .background(
+                                    if (app.icon != null) Color.Transparent
+                                    else if (active) accent else ink.copy(alpha = 0.08f),
+                                    CircleShape,
+                                ),
                             contentAlignment = Alignment.Center,
                         ) {
-                            Text(app.label.take(1).uppercase(), color = if (active) OnSage else ink, fontWeight = FontWeight.Black)
+                            if (app.icon != null) {
+                                Image(
+                                    bitmap = app.icon,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(30.dp),
+                                )
+                            } else {
+                                Text(
+                                    app.label.take(1).uppercase(),
+                                    color = if (active) OnSage else ink,
+                                    fontWeight = FontWeight.Black,
+                                )
+                            }
                         }
                         Spacer(Modifier.width(14.dp))
                         Text(app.label, color = ink, fontSize = 15.sp, modifier = Modifier.weight(1f))
@@ -191,3 +235,5 @@ actual fun DistractionPicker(onContinue: (List<String>) -> Unit) {
             },
         )
     }}
+/** Rendered once per app at a size that survives the densest screens. */
+private const val ICON_PX = 144
