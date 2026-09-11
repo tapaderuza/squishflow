@@ -1,34 +1,18 @@
 # Squishflow
 
-**A focus timer you can squeeze.** Kotlin Multiplatform, one shared Compose UI, Android and iOS.
+**A focus timer you can squeeze.** One Kotlin codebase, one Compose UI, Android and iPhone.
 
 [![iOS](https://github.com/tapaderuza/squishflow/actions/workflows/ios.yml/badge.svg)](https://github.com/tapaderuza/squishflow/actions/workflows/ios.yml)
 
-Rigid Pomodoro apps ask you to be disciplined at exactly the moment you have no discipline left. Squishflow puts a soft body between you and the work: you tell it what you want to finish, it hands back blocks short enough to believe, and while you sit with the tension you can push your thumb into Squishy and feel it push back.
+Every focus app asks you to be disciplined at exactly the moment you have no discipline left. Squishflow puts a soft body between you and the work: you tell it what you want to finish, it hands back blocks short enough to believe, and while you sit with the tension you push your thumb into Squishy and it pushes back.
 
 <p align="center">
   <img src="evidence/screen_welcome.png" width="30%" alt="First run: Meet Squishy">
-  <img src="evidence/screen_plan.png" width="30%" alt="A goal turned into focus blocks">
-  <img src="evidence/screen_materials.png" width="30%" alt="Focus screen with the material shelf">
-</p>
-<p align="center">
-  <img src="evidence/screen_journey.png" width="46%" alt="The journey screen: lifetime focus and the shelf of earned bodies">
+  <img src="evidence/screen_focus.png" width="30%" alt="The focus screen">
   <img src="evidence/screen_deform.png" width="30%" alt="The body deformed mid-drag">
 </p>
 
 ---
-
-## What is actually built
-
-`Goal → mission plan → review → focus block → reflection → adapted next block`
-
-- **Kotlin Multiplatform + Compose Multiplatform.** The UI, the timer, the planner and the physics are all in `commonMain`. The platform source sets hold only what genuinely differs: haptics, persistence, app selection, pose detection.
-- **A soft-body Squishy.** Not a sprite being scaled — see below.
-- **Monotonic timer** with `TENSE`, `RELAXING` and `COMPRESSED` states that drive colour, motion and face.
-- **An offline planner** that decomposes a free-form goal into blocks, behind a `MissionPlanner` interface so a server-backed model can replace it without touching the UI.
-- **Explainable adaptation.** One tap after each block: easy `+5m`, right `same`, too much `−5m`, clamped to 10–60.
-- **RevenueCat KMP** paywall and the `squish_pro` entitlement boundary.
-- **Conscious pause** on Android and Family Controls shielding on iOS, both optional and both behind an explicit disclosure.
 
 ## The squishy is a physics model
 
@@ -36,28 +20,24 @@ Rigid Pomodoro apps ask you to be disciplined at exactly the moment you have no 
 
 - **Neighbour coupling** — the discrete Laplacian around the ring — turns every press into a wave that travels across the surface instead of a local scale.
 - **Volume conservation** removes the mean displacement on each step, so denting one side necessarily bulges the other. Without it the body just deflates under a held finger.
-- **Fixed 240 Hz sub-stepping** means a dropped frame cannot push the explicit integrator past its stability limit and blow the body up.
+- **Fixed 240 Hz sub-stepping** means a dropped frame cannot push the explicit integrator past its stability limit.
 - The frame loop **parks itself** once every sample is at rest, so an idle Squishy costs nothing.
 
-The renderer passes a Catmull-Rom curve exactly through the simulated samples, so what the physics computes is what you see. It has no Compose dependency and is covered by unit tests, including the dropped-frame and held-finger cases that would otherwise only show up on a real device as a body that explodes or resonates.
+The renderer passes a Catmull-Rom curve exactly through the simulated samples, so what the physics computes is what you see. It has no Compose dependency and is unit-tested, including the dropped-frame and held-finger cases that would otherwise only show up on a device as a body that explodes or resonates.
 
-Haptics are treated as part of the same object rather than as decoration: Android drives the vibrator directly for per-accent amplitude, iOS uses the Taptic Engine and keeps its generators armed between hits.
+**It does the thing it asks of you.** Over a focus block the body softens and stops wobbling — stiffness falls, damping rises — and its breathing slows to match. The same drag gives about a fifth further at minute twenty-four than at minute one. Dropping stiffness alone would make it *wobblier* by the end, the opposite of the feeling, so a test asserts a settled body comes to rest faster than a fresh one.
 
-### The voice is synthesised too
+### It has a face that does things nobody asked it to
 
-No audio files ship with the app. `SquishSynth` builds each squish from noise
-through a resonant state-variable filter — cutoff sweeping *down* for compression
-and *up* for the rebound — over a low sine that gives the body its mass. Loudness
-on release follows how deeply the finger was actually pressing.
+A companion that only moves when touched is a control, not a character. Squishy blinks on an irregular rhythm — a fixed interval reads as a metronome — and its gaze drifts a few pixels every few seconds, which is what makes eyes read as thinking rather than painted on. The eyes narrow with how hard you are pressing. Under reduced motion all of it stops, because none of it is movement you asked for.
 
-Generating rather than sampling means the sound cannot drift from the shape, and a
-new material gets a voice by changing constants instead of commissioning a
-recording. It is deterministic, so Android and iOS produce an identical waveform.
+### It has a voice, and no audio files
 
-Tests cannot tell you whether a synth sounds *good*, so they assert the things
-that go wrong silently: clipping, DC offset, filter runaway, clicks at the buffer
-edges. For the part only ears can judge, running the unit tests writes auditionable
-WAVs to `shared/build/audio-preview/`.
+`SquishSynth` builds every squelch from noise through a resonant state-variable filter — cutoff sweeping *down* for compression and *up* for the rebound — over a low sine that gives the body its mass. Release loudness follows how deeply the finger was pressing. Generating rather than sampling means the sound cannot drift from the shape, and the waveform is bit-identical on Android and iOS because the noise is seeded.
+
+Tests cannot tell you whether a synth sounds *good*, so they assert what fails silently: clipping, DC offset, filter runaway, clicks at the buffer edges. For the part only ears can judge, the unit tests write auditionable WAVs to `shared/build/audio-preview/`.
+
+Haptics are part of the same object rather than decoration: Android drives the vibrator directly for per-accent amplitude, iOS uses the Taptic Engine and keeps its generators armed.
 
 ## Monetisation: focus is the currency
 
@@ -71,142 +51,93 @@ WAVs to `shared/build/audio-preview/`.
 | Water balloon | Thin skin, keeps sloshing | 7 h |
 | Bubble | Weightless, the whole surface rings | 15 h |
 
-This is deliberate rather than clever. A focus app that locks its rewards behind a
-card is working against the thing it claims to want: it profits when you pay, not
-when you concentrate. Making focused minutes the free currency means the app only
-becomes more rewarding the more it actually works, and the subscription is a
-shortcut for people who would rather not wait — plus the reason there are no ads
-and no analytics on anyone, paying or not.
+This is deliberate rather than clever. A focus app that locks its rewards behind a card is working against the thing it claims to want: it profits when you pay, not when you concentrate. Making focused minutes the free currency means the app only becomes more rewarding the more it actually works. The subscription is a shortcut for people who would rather not wait — and the reason there are no ads and no analytics on anyone, paying or not.
 
-Two consequences fall out of it, and both are tested:
+Three consequences, all tested:
 
-- **A lapsed subscription keeps everything you earned.** Taking back a body someone
-  focused an hour for would punish them for using the app as intended.
-- **A locked chip shows an arc of how close it is**, not a padlock, because the
-  person is already on their way to it.
+- **A lapsed subscription keeps everything you earned.** Taking back a body someone focused an hour for would punish them for using the app as intended.
+- **A locked body shows how close you are**, not a padlock. The person is already on their way to it.
+- **Earning one is a moment.** The block that crosses a threshold reveals the new body in its own finish, with its name and a button to start holding it. A block long enough to clear two rungs celebrates the better one.
 
-And because only one body is free at the start, tapping a locked chip hands you
-that material for six seconds before the upgrade screen appears. A list of names
-cannot communicate what dense foam feels like.
+Because only one body is free at the start, tapping a locked one hands it to you for six seconds before the upgrade screen appears. A list of names cannot communicate what dense foam feels like.
 
 <p align="center">
-  <img src="evidence/unlock.png" width="34%" alt="Earning a squishy: the new body revealed with its name and finish">
+  <img src="evidence/unlock.png" width="30%" alt="Earning a squishy">
+  <img src="evidence/screen_journey.png" width="30%" alt="The shelf">
+  <img src="evidence/premium.png" width="30%" alt="The upgrade screen shows the bodies, not a badge">
 </p>
 
 ### The materials are not reskins
 
-Each one retunes the solver — stiffness, damping, neighbour coupling, stretch
-limit. A unit test asserts the difference is real: dense foam must settle in fewer
-frames than jelly, and a water balloon in more. If two materials ever came to rest
-at the same rate, the entitlement would be selling paint.
+Each one retunes the solver — stiffness, damping, neighbour coupling, stretch limit. A test asserts the difference is real: dense foam settles in fewer frames than jelly and a water balloon in more. If two materials ever came to rest at the same rate, the entitlement would be selling paint.
 
-Hue deliberately stays out of it. Colour carries session state across the whole
-product, and a material that repainted the body would break the one signal the
-user has learned. Materials differ by finish: gloss, rim, speckle, translucency.
+Hue deliberately stays out of it. Colour carries session state across the whole product — coral is tension, sage is focus, lavender is interruption — and a material that repainted the body would break the one signal the user has learned. Materials differ by finish: gloss, rim, speckle, translucency.
+
+## One codebase, two platforms
+
+<p align="center">
+  <img src="evidence/ios/ios-welcome.png" width="30%" alt="Squishflow on iPhone">
+  <img src="evidence/screen_welcome.png" width="30%" alt="Squishflow on Android">
+</p>
+
+The UI, timer, planner, physics and audio synthesis are all in `commonMain`. The platform source sets hold only what genuinely differs — haptics, persistence, app selection — each behind the same `expect` declaration.
+
+The project is developed on Windows and the only Mac available runs Monterey, which stops at Xcode 14 and cannot target a current iPhone. So the iOS build lives in CI: on every push a hosted Mac compiles the shared Kotlin for Apple, builds the Xcode project, boots a simulator, installs the app and photographs it. The shared Kotlin compiled for iOS on the first attempt. The badge above is the proof, not a claim.
 
 ## Design
 
-**Motion has a grammar.** Destinations carry a depth, and the transition between
-any two is chosen from what the move means rather than from one generic fade:
-going deeper rises, going back falls, overlays travel their own axis, and an
-interruption deliberately breaks the rule by arriving with no motion at all —
-being pulled out of a distraction should feel like a stop, and sliding it in
-prettily would soften the one moment the app wants to be abrupt.
+**The first screen is the product.** No permission request, no list of apps. One body and nothing to read before you touch it. Protection setup waits behind the header until the app has earned the right to ask.
 
-**The companion does the thing it asks of you.** Over a focus block the body
-softens and stops wobbling — stiffness falls, damping rises — and its breathing
-slows to match. The same drag deforms it about a fifth further at minute
-twenty-four than at minute one, so a session visibly has depth rather than just a
-countdown. Dropping stiffness alone would have made it *wobblier* by the end,
-which is the opposite of the feeling, so a test asserts the settled body comes to
-rest faster than the fresh one.
+**Motion has a grammar.** Destinations carry a depth, and the transition between any two is chosen from what the move means: going deeper rises, going back falls, overlays travel their own axis, and an interruption arrives with no motion at all — being pulled out of a distraction should feel like a stop.
 
-**Earning a body is a moment.** Crossing a threshold used to pass in silence —
-the progress bar simply arrived full. The block that earns a squishy now reveals
-it: the new body in its own finish, its name, and a button to start holding it.
+**The focus screen carries as little as it can.** No wordmark, no upgrade badge, no state word under the timer — hue already says it. The duration picker is type and a rule. The shelf lives one tap away on the journey screen, because choosing a toy is exactly the kind of small decision a focus block exists to protect you from.
 
-**Finishing a block is the peak, so it is the reward.** A settled companion in
-the material you chose, the minutes banked, and a bar moving towards the next
-body on the shelf. The loop closes where the feeling is.
+**Finishing a block is the peak, so it is the reward.** A settled companion in the material you chose, the minutes banked, and a bar moving towards the next body.
 
-The focus screen is the one you spend real time on, so it carries as little as it
-can. There is no wordmark — you know which app you are in — and no permanent
-upgrade badge, because the upgrade path runs through the bodies you are working
-towards. The state word under the timer is gone too: hue already carries state
-everywhere else in the product, so spelling it out was saying the same thing
-twice. The duration picker is type and a rule rather than a pill inside a track.
+**The copy is tested.** No exclamation marks, because enthusiasm raises the cost of starting. No failure or streak language, because an abandoned block is a thing that happened, not a verdict. Nothing longer than one line. The rules are assertions in `SquishyVoiceTest`.
+
+**The icon is the physics.** `tools/make_icon.py` carries a small port of the solver; the outline is the real soft-body silhouette at the peak of a held press, because a settled body is just a circle.
+
+<p align="center">
+  <img src="evidence/icon_preview.png" width="14%" alt="The launcher icon">
+</p>
 
 ## Accessibility
 
-The companion is built out of motion, so the system reduced-motion setting is
-honoured rather than ignored: the body still deforms under a finger, because that
-is the interaction and not decoration, but it stops breathing, ringing and pulsing
-on its own. Every material chip carries a full TalkBack description including how
-much focus is left to earn it, and the body announces its session state.
+The system reduced-motion setting is honoured: the body still deforms under a finger — that is the interaction — but nothing moves that you did not move. Every body on the shelf carries a full screen-reader description including how much focus is left to earn it. The review screen scrolls and its steppers are labelled. Verified at 2.0× font scale.
 
-## Honesty about the planner
+## Honesty
 
-The current planner is **deterministic and on-device**. It does not learn, and there is no model behind it. The interface says "adaptive focus", never "AI", and the app tells you the plan was built on your device.
-
-A remote provider must be reached through a backend. No API secret ever ships in a mobile binary.
+The planner is **deterministic and on-device**. It does not learn, and there is no model behind it. The interface says "adaptive focus", never "AI". A remote provider must be reached through a backend; no API secret ever ships in a mobile binary.
 
 ## Build
-
-Android, from Windows, macOS or Linux:
 
 ```bash
 ./gradlew :shared:testDebugUnitTest :androidApp:assembleDebug
 ```
 
-iOS targets are declared only on macOS, so the project builds on a Windows machine instead of failing inside the Kotlin/Native compiler. On a Mac, open `iosApp/iosApp.xcodeproj` after running the same command.
+Android builds on Windows, macOS or Linux. Apple targets are declared only on macOS, so the project builds on the Windows machine it is developed on instead of failing inside the Kotlin/Native compiler. The iOS build itself runs in [GitHub Actions](.github/workflows/ios.yml).
 
-Before any store submission: replace the RevenueCat test key with the platform keys, configure the offerings, sign the release builds, and run sandbox purchases on physical devices. `docs/PRODUCTION_READINESS.md` tracks that gate and is deliberately not all ticked.
-
-## It runs on iPhone too
-
-<p align="center">
-  <img src="evidence/ios/ios-welcome.png" width="30%" alt="Squishflow on an iPhone simulator: the welcome screen">
-  <img src="evidence/ios/ios-entry.png" width="30%" alt="The iOS entry screen, before the companion">
-</p>
-
-The project is developed on Windows and the only Mac available runs Monterey,
-which stops at Xcode 14 and cannot target a current iPhone. So the iOS build
-lives in CI: a hosted Mac compiles the shared Kotlin for Apple, builds the Xcode
-project, boots a simulator, installs the app and photographs it. Every push to
-`main` produces those captures as artifacts — the proof that one Compose codebase
-is running on both platforms, not a claim.
-
-The shared Kotlin compiled for iOS on the first attempt. Haptics, audio, settings
-and reduced-motion detection each have an Apple implementation behind the same
-`expect` declaration the Android side uses.
-
-## First run
-
-The app used to open on a list of installed apps and an Accessibility permission
-request. Someone evaluating it in thirty seconds would decide before ever
-reaching the companion. The first screen is now the product — one body, nothing
-to read before you touch it — and protection setup waits behind the header until
-the app has earned the right to ask.
-
-The launcher icon is generated by `tools/make_icon.py`, which carries a small
-port of the physics: the outline is the real soft-body silhouette at the peak of
-a held press, because a settled body is just a circle.
-
-<p align="center">
-  <img src="evidence/icon_preview.png" width="14%" alt="The Squishflow launcher icon">
-</p>
+Before any store submission: replace the RevenueCat test key with the platform keys, configure the offerings, sign the release builds, and run sandbox purchases on physical devices. `docs/PRODUCTION_READINESS.md` tracks that gate.
 
 ## Repository map
 
 | Path | What lives there |
 | --- | --- |
 | `shared/src/commonMain/.../SquishyPhysics.kt` | The soft-body model. Pure Kotlin, no UI. |
-| `shared/src/commonMain/.../SquishyCanvas.kt` | Gestures, the frame loop and the renderer. |
+| `shared/src/commonMain/.../SquishyCanvas.kt` | Gestures, the frame loop, the renderer. |
+| `shared/src/commonMain/.../SquishyFace.kt` | Blinking, gaze drift, squint. |
+| `shared/src/commonMain/.../SquishSynth.kt` | The synthesised voice. |
 | `shared/src/commonMain/.../SquishyMaterial.kt` | The five bodies and their solver constants. |
+| `shared/src/commonMain/.../MaterialAccess.kt` | Focus as currency: earned, purchased, locked. |
+| `shared/src/commonMain/.../SquishyVoice.kt` | Every line the focus screen says. |
 | `shared/src/commonMain/.../MissionPlanner.kt` | Goal decomposition. |
-| `shared/src/commonMain/.../App.kt` | Screens and navigation. |
-| `shared/src/commonMain/.../Theme.kt` | Palette and state colours. |
-| `shared/src/commonTest/` | Physics, planner and timer tests. |
+| `shared/src/commonMain/.../Navigation.kt` | The motion grammar. |
+| `shared/src/commonMain/.../App.kt` | Screens and routing. |
+| `shared/src/commonMain/.../Theme.kt` | Every colour in the product, named once. |
+| `shared/src/commonTest/` | 84 tests: physics, materials, planner, voice, synth, access. |
+| `tools/` | Icon generation, submission screenshots, the iOS walkthrough. |
+| `submission/` | Devpost description, video shot list, icon and screenshots at the required sizes. |
 | `docs/` | Product decisions, production gate, privacy draft. |
 
 ## Licence

@@ -22,7 +22,7 @@ SHOTS = [
     ("evidence/screen_welcome.png", "01-meet-squishy.png"),
     ("evidence/screen_deform.png", "02-it-pushes-back.png"),
     ("evidence/screen_plan.png", "03-a-goal-becomes-blocks.png"),
-    ("evidence/screen_focus_min.png", "04-the-focus-screen.png"),
+    ("evidence/screen_focus.png", "04-the-focus-screen.png"),
     ("evidence/unlock.png", "05-earning-a-body.png"),
     ("evidence/screen_journey.png", "06-the-shelf.png"),
     ("evidence/ios/ios-welcome.png", "07-same-app-on-iphone.png"),
