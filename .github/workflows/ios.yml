@@ -115,3 +115,54 @@ jobs:
         with:
           name: ios-simulator-app
           path: build/ios/Debug-iphonesimulator/*.app
+
+  # Walks every main screen on the simulator by tapping through the
+  # accessibility tree, so the parity with Android is shown rather than claimed.
+  # Kept as its own job: it depends on a third-party driver (idb) and should not
+  # be able to turn the proven build red.
+  walkthrough:
+    needs: ios
+    runs-on: macos-15
+    timeout-minutes: 30
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Download the simulator build
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-simulator-app
+          path: app
+
+      - name: Install idb
+        run: |
+          brew tap facebook/fb
+          brew install idb-companion
+          pip3 install --break-system-packages fb-idb
+
+      - name: Walk the app and photograph each screen
+        run: |
+          set -euo pipefail
+          DEVICE=$(xcrun simctl list devices available --json | python3 tools/pick_simulator.py)
+          xcrun simctl boot "$DEVICE"
+          xcrun simctl bootstatus "$DEVICE" -b
+          APP=$(find app -name "*.app" -maxdepth 2 | head -1)
+          xcrun simctl install "$DEVICE" "$APP"
+          idb_companion --udid "$DEVICE" --only simulator > /tmp/companion.log 2>&1 &
+          sleep 5
+          idb connect "$DEVICE" || true
+          mkdir -p walkthrough
+          python3 tools/ios_walkthrough.py "$DEVICE" com.alvaropassalacqua.squishflow walkthrough
+
+      - name: Upload the walkthrough
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-walkthrough
+          path: walkthrough/
+          if-no-files-found: ignore
