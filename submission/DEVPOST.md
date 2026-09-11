@@ -36,7 +36,7 @@ You tell it what you want to finish. It hands back blocks short enough to believ
 
 There are five bodies. **Every one can be earned with focused minutes. Pro buys them now.**
 
-A focus app that locks its rewards behind a card is working against the thing it claims to want — it profits when you pay, not when you concentrate. Making focused minutes the free currency means the app only gets more rewarding the more it actually works. The subscription is a shortcut for people who would rather not wait, and the reason there are no ads and no analytics on anyone, paying or not.
+A focus app that locks its rewards behind a card is working against the thing it claims to want — it profits when you pay, not when you concentrate. Making focused minutes the free currency means the app only gets more rewarding the more it actually works. The subscription is a shortcut for people who would rather not wait, and the reason there are no ads and no analytics on anyone, paying or not. The one Pro benefit that is not cosmetic is utility: free protects three apps behind Squishy, Pro protects every one — and that limit lives in product logic with a test, not in paywall copy.
 
 Two consequences, both unit-tested: a lapsed subscription keeps everything you earned, and a locked body shows how close you are rather than a padlock. And because only one body is free at the start, tapping a locked one hands it to you for six seconds before the paywall appears. A list of names cannot communicate what dense foam feels like.
 

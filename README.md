@@ -56,7 +56,7 @@ Haptics are part of the same object rather than decoration: Android drives the v
 | Water balloon | Thin skin, keeps sloshing | 7 h |
 | Bubble | Weightless, the whole surface rings | 15 h |
 
-This is deliberate rather than clever. A focus app that locks its rewards behind a card is working against the thing it claims to want: it profits when you pay, not when you concentrate. Making focused minutes the free currency means the app only becomes more rewarding the more it actually works. The subscription is a shortcut for people who would rather not wait — and the reason there are no ads and no analytics on anyone, paying or not.
+This is deliberate rather than clever. A focus app that locks its rewards behind a card is working against the thing it claims to want: it profits when you pay, not when you concentrate. Making focused minutes the free currency means the app only becomes more rewarding the more it actually works. The subscription is a shortcut for people who would rather not wait — and the reason there are no ads and no analytics on anyone, paying or not. The one Pro benefit that is not cosmetic is utility: free protects three apps behind Squishy, Pro protects every one — and that limit lives in product logic with a test, not in paywall copy.
 
 Three consequences, all tested:
 

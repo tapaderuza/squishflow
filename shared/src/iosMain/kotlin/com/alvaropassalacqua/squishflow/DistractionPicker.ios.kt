@@ -34,15 +34,33 @@ actual object FocusPreferences {
 }
 
 @Composable
-actual fun DistractionPicker(onContinue: (List<String>) -> Unit) {
+actual fun DistractionPicker(
+    allowance: Int?,
+    draft: List<String>?,
+    onDraftChanged: (List<String>) -> Unit,
+    onUpgrade: () -> Unit,
+    onContinue: (List<String>) -> Unit,
+) {
     val choices = listOf("Social", "Video", "Messaging", "News", "Games", "Shopping")
-    var selected by remember { mutableStateOf(setOf<String>()) }
+    var selected by remember { mutableStateOf(draft?.toSet() ?: emptySet()) }
+    LaunchedEffect(selected) { onDraftChanged(selected.toList()) }
+    var hitLimit by remember { mutableStateOf(false) }
     Surface(Modifier.fillMaxSize(), color = Cream) {
         Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(24.dp)) {
             Spacer(Modifier.height(24.dp))
             Text("What steals your focus?", color = Ink, fontSize = 32.sp, fontWeight = FontWeight.Light)
             Spacer(Modifier.height(10.dp))
             Text("Pick your usual distractions. Per-app selection arrives with Family Controls.", color = Muted, fontSize = 14.sp)
+            if (allowance != null && (hitLimit || selected.size >= allowance)) {
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    "Free protects $allowance. Pro protects every one  →",
+                    color = Premium,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.clickable(onClick = onUpgrade).padding(vertical = 4.dp),
+                )
+            }
             Spacer(Modifier.height(28.dp))
             choices.forEach { choice ->
                 val active = choice in selected
@@ -52,7 +70,13 @@ actual fun DistractionPicker(onContinue: (List<String>) -> Unit) {
                     modifier = Modifier.fillMaxWidth()
                         .padding(vertical = 4.dp)
                         .background(if (active) Sage.copy(alpha = 0.15f) else SoftWhite, RoundedCornerShape(18.dp))
-                        .clickable { selected = if (active) selected - choice else selected + choice }
+                        .clickable {
+                            selected = when {
+                                active -> selected - choice
+                                allowance == null || selected.size < allowance -> selected + choice
+                                else -> { hitLimit = true; selected }
+                            }
+                        }
                         .padding(18.dp),
                 )
             }

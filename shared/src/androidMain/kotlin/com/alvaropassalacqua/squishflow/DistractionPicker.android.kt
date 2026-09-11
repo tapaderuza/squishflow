@@ -98,7 +98,13 @@ private fun Drawable.toIconBitmap(sizePx: Int): ImageBitmap? = runCatching {
 }.getOrNull()
 
 @Composable
-actual fun DistractionPicker(onContinue: (List<String>) -> Unit) {
+actual fun DistractionPicker(
+    allowance: Int?,
+    draft: List<String>?,
+    onDraftChanged: (List<String>) -> Unit,
+    onUpgrade: () -> Unit,
+    onContinue: (List<String>) -> Unit,
+) {
     val context = LocalContext.current
     FocusPreferences.initialize(context)
     val apps = remember {
@@ -117,8 +123,12 @@ actual fun DistractionPicker(onContinue: (List<String>) -> Unit) {
             .distinctBy { it.packageName }
             .sortedBy { it.label.lowercase() }
     }
-    var selected by remember { mutableStateOf(FocusPreferences.selectedPackages()) }
+    var selected by remember { mutableStateOf(draft?.toSet() ?: FocusPreferences.selectedPackages()) }
+    LaunchedEffect(selected) { onDraftChanged(selected.toList()) }
     var showDisclosure by remember { mutableStateOf(false) }
+    // Set the first time a tap is refused for the limit, and left on: the line
+    // that explains it should not blink in and out with every attempt.
+    var hitLimit by remember { mutableStateOf(false) }
     val ink = Ink
     val muted = Muted
     val surface = SoftWhite
@@ -133,6 +143,18 @@ actual fun DistractionPicker(onContinue: (List<String>) -> Unit) {
                 "Pick the apps you open on impulse. Squishy turns opening them into a decision.",
                 color = muted, fontSize = 14.sp, lineHeight = 21.sp,
             )
+            if (allowance != null && (hitLimit || selected.size >= allowance)) {
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    "Free protects $allowance apps. Pro protects every one  →",
+                    color = Premium,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier
+                        .clickable(onClick = onUpgrade)
+                        .padding(vertical = 4.dp),
+                )
+            }
             Spacer(Modifier.height(24.dp))
             LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(apps, key = { it.packageName }) { app ->
@@ -141,7 +163,11 @@ actual fun DistractionPicker(onContinue: (List<String>) -> Unit) {
                         Modifier.fillMaxWidth()
                             .background(if (active) accent.copy(alpha = 0.12f) else surface, RoundedCornerShape(18.dp))
                             .clickable {
-                                selected = if (active) selected - app.packageName else selected + app.packageName
+                                selected = when {
+                                    active -> selected - app.packageName
+                                    allowance == null || selected.size < allowance -> selected + app.packageName
+                                    else -> { hitLimit = true; selected }
+                                }
                             }
                             .padding(horizontal = 17.dp, vertical = 15.dp),
                         verticalAlignment = Alignment.CenterVertically,

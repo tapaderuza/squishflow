@@ -64,6 +64,7 @@ fun App() {
         var skipProtectionSetup by remember { mutableStateOf(SquishySettings.hasDeclinedProtection()) }
         var showPaywall by remember { mutableStateOf(false) }
         var showPremiumIntro by remember { mutableStateOf(false) }
+        var pickerDraft by remember { mutableStateOf<List<String>?>(null) }
         var showRescueMode by remember { mutableStateOf(false) }
         var showJourney by remember { mutableStateOf(false) }
         var trialMaterial by remember { mutableStateOf<SquishyMaterial?>(null) }
@@ -156,6 +157,9 @@ fun App() {
         val destination = when {
             blockedPackage != null -> Destination.Intervention
             !welcomeSeen -> Destination.Welcome
+            // Above onboarding: the app picker offers Pro when the free limit is hit.
+            showPaywall -> Destination.Paywall
+            showPremiumIntro -> Destination.PremiumIntro
             !onboardingComplete -> Destination.ChooseDistractions
             !protectionEnabled && !skipProtectionSetup -> Destination.ProtectionSetup
             mission == null -> Destination.Planner
@@ -164,8 +168,6 @@ fun App() {
             showJourney -> Destination.Journey
             showRescueMode -> Destination.Rescue
             showReflection -> Destination.Reflection
-            showPaywall -> Destination.Paywall
-            showPremiumIntro -> Destination.PremiumIntro
             else -> Destination.Focus
         }
 
@@ -191,7 +193,13 @@ fun App() {
                     welcomeSeen = true
                 },
             )
-            Destination.ChooseDistractions -> DistractionPicker { selected ->
+            Destination.ChooseDistractions -> DistractionPicker(
+                allowance = protectedAppAllowance(isPremium),
+                draft = pickerDraft,
+                onDraftChanged = { pickerDraft = it },
+                onUpgrade = { showPremiumIntro = true },
+            ) { selected ->
+                pickerDraft = null
                 FocusPreferences.completeOnboarding(selected)
                 protectedAppCount = selected.size
                 protectionEnabled = FocusPreferences.isProtectionEnabled()
@@ -910,8 +918,9 @@ private fun PremiumIntroScreen(
             )
             Spacer(Modifier.height(38.dp))
             PremiumBenefit("01", "Every body, now", "The four you are working towards, without the wait.")
-            PremiumBenefit("02", "Keep what you earn", "Let Pro lapse and every body you focused for stays.")
-            PremiumBenefit("03", "No ads, ever, for anyone", "Subscriptions are the only thing this app sells.")
+            PremiumBenefit("02", "Protect every app", "Free protects $FREE_PROTECTED_APPS. Pro has no limit.")
+            PremiumBenefit("03", "Keep what you earn", "Let Pro lapse and every body you focused for stays.")
+            PremiumBenefit("04", "No ads, ever, for anyone", "Subscriptions are the only thing this app sells.")
             Spacer(Modifier.weight(1f))
             Button(
                 onClick = onSeePlans,

@@ -44,9 +44,9 @@ Squishflow avoids the already crowded “Squish AI” name while preserving Squi
 
 ## Free and Pro
 
-Free: unlimited manual sessions up to 25 minutes, three adaptive plans/day, base Squishy, three sounds and seven-day history.
+Free: every block length, the full planner, the free body plus every body earned with focused minutes (60 / 180 / 420 / 900 min ladder), and protection for up to three apps.
 
-Pro (€4.99 monthly / €29.99 annual, seven-day trial): server AI planning, unlimited adaptation, advanced insights, Deep Focus, weekly review and personality packs. Annual is preselected with transparent “Save 50%” copy.
+Pro (monthly, yearly, lifetime): every body now, protection for any number of apps, and nothing else — no ads for anyone either way. A lapsed subscription keeps every body earned and every app already protected. Yearly is preselected; the row states the per-month price and there are no urgency devices.
 
 RevenueCat uses the `default` offering, one entitlement (named `Squish Pro` in the dashboard; the code treats any active entitlement as Pro), and monthly, yearly and lifetime packages. Development currently uses RevenueCat Test Store; platform keys replace it before store release.
 
