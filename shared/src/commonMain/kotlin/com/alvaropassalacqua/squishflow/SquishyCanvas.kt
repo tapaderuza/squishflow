@@ -43,6 +43,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.math.abs
@@ -129,6 +130,20 @@ internal fun SquishyStage(
     // something you notice having happened, not something you see happen.
     LaunchedEffect(settleStep) {
         body.retune(material.tuning.settled(settleStep.toFloat() / SETTLE_STEPS))
+    }
+
+    // Left alone long enough, the body stretches — slowly, on an irregular clock,
+    // and never while a finger is on it. A companion that only ever waits reads
+    // as a control; one that occasionally sighs reads as company.
+    LaunchedEffect(reducedMotion) {
+        if (reducedMotion) return@LaunchedEffect
+        val random = kotlin.random.Random(0x5E4)
+        while (true) {
+            delay(random.nextLong(24_000, 48_000))
+            if (fingerDown || !body.isAtRest()) continue
+            body.stretch(1.9f)
+            running = true
+        }
     }
 
     // A completed block, or an interruption, should be felt on the body itself.

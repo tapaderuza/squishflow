@@ -44,7 +44,8 @@ internal data class FaceMood(
 
 @Composable
 internal fun rememberFaceMood(reducedMotion: Boolean): FaceMood {
-    val openness = remember { Animatable(1f) }
+    // Starts closed: the first thing the face does is open its eyes.
+    val openness = remember { Animatable(0.04f) }
     val gazeX = remember { Animatable(0f) }
     val gazeY = remember { Animatable(0f) }
     val still by rememberUpdatedState(reducedMotion)
@@ -54,6 +55,10 @@ internal fun rememberFaceMood(reducedMotion: Boolean): FaceMood {
             openness.snapTo(1f)
             return@LaunchedEffect
         }
+        // Waking up: a beat of stillness, then the eyes open unhurriedly.
+        delay(420)
+        openness.animateTo(1f, tween(520, easing = FastOutSlowInEasing))
+
         val random = Random(0xB11)
         while (true) {
             // Human blink spacing is irregular. A fixed interval reads as a

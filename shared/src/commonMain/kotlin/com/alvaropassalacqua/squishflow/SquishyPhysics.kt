@@ -116,6 +116,20 @@ class SquishyPhysics(
         }
     }
 
+    /**
+     * Elongate the body along the vertical axis and let it relax.
+     *
+     * The second mode of the ring: top and bottom move out while the sides move
+     * in, which is what a stretch or a slow sigh looks like. Kept separate from
+     * [pulse] because a three-lobed ripple reads as excitement and this should
+     * read as the opposite.
+     */
+    fun stretch(strength: Float) {
+        for (i in 0 until pointCount) {
+            velocity[i] += strength * cos(angleAt(i) * 2f)
+        }
+    }
+
     /** Drop every deformation immediately, without animating back. */
     fun reset() {
         displacement.fill(0f)

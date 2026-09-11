@@ -132,3 +132,40 @@ class SquishyPhysicsTest {
         assertTrue(abs(meanX) < 0.12 && abs(meanY) < 0.12, "Body drifted to ($meanX, $meanY)")
     }
 }
+
+class StretchTest {
+
+    @Test
+    fun aStretchElongatesVerticallyAndNarrowsTheSides() {
+        val body = SquishyPhysics()
+        body.stretch(2f)
+        body.advance(1f / 60f)
+
+        val top = body.displacementAt(0)
+        val side = body.displacementAt(body.pointCount / 4)
+        assertTrue(top > 0f, "Top should move outward, was $top")
+        assertTrue(side < 0f, "Sides should move inward, was $side")
+    }
+
+    @Test
+    fun aStretchIsNotARipple() {
+        // Second mode versus third: a stretch must have exactly two lobes, or it
+        // reads as excitement rather than as a sigh.
+        val body = SquishyPhysics()
+        body.stretch(2f)
+        body.advance(1f / 60f)
+        val n = body.pointCount
+        val quarter = n / 4
+        assertTrue(body.displacementAt(0) > 0f && body.displacementAt(n / 2) > 0f, "Both poles out")
+        assertTrue(body.displacementAt(quarter) < 0f && body.displacementAt(3 * quarter) < 0f, "Both sides in")
+    }
+
+    @Test
+    fun aStretchSettlesBackToRound() {
+        val body = SquishyPhysics()
+        body.stretch(2f)
+        var frames = 0
+        while (frames < 600 && !body.isAtRest()) { body.advance(1f / 60f); frames++ }
+        assertTrue(body.isAtRest(), "A sigh that never ends is a tremor")
+    }
+}
