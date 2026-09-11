@@ -29,14 +29,16 @@ actual fun rememberSquishAudio(): SquishAudio = remember { IosSquishAudio() }
 @OptIn(ExperimentalForeignApi::class)
 private class IosSquishAudio : SquishAudio {
 
-    private val players: Map<SquishGesture, List<AVAudioPlayer>> = runCatching {
+    private val players: Map<SquishyMaterial, Map<SquishGesture, List<AVAudioPlayer>>> = runCatching {
         AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryAmbient, null)
         AVAudioSession.sharedInstance().setActive(true, null)
 
-        mapOf(
-            SquishGesture.SQUEEZE to buildPlayers(SquishSynth.squeeze()),
-            SquishGesture.RELEASE to buildPlayers(SquishSynth.release()),
-        )
+        SquishyMaterial.entries.associateWith { material ->
+            mapOf(
+                SquishGesture.SQUEEZE to buildPlayers(SquishSynth.squeeze(material)),
+                SquishGesture.RELEASE to buildPlayers(SquishSynth.release(material)),
+            )
+        }
     }.getOrDefault(emptyMap())
 
     private var next = 0
@@ -48,8 +50,8 @@ private class IosSquishAudio : SquishAudio {
         }
     }
 
-    override fun play(gesture: SquishGesture, intensity: Float) {
-        val pool = players[gesture]?.takeIf { it.isNotEmpty() } ?: return
+    override fun play(gesture: SquishGesture, intensity: Float, material: SquishyMaterial) {
+        val pool = players[material]?.get(gesture)?.takeIf { it.isNotEmpty() } ?: return
         val player = pool[next % pool.size]
         next++
         runCatching {

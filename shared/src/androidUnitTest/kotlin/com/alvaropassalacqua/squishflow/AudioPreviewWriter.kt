@@ -21,33 +21,18 @@ class AudioPreviewWriter {
     fun writeAuditionableWavFiles() {
         val outputDir = File("build/audio-preview").apply { mkdirs() }
 
-        val renders = mapOf(
-            "squeeze" to SquishSynth.squeeze(),
-            "release" to SquishSynth.release(),
-            "squeeze-soft" to SquishSynth.squeeze(intensity = 0.35f),
-            // Alternatives, so a person can choose by ear rather than by reading
-            // constants: deeper, and bubblier.
-            "squeeze-deep" to SquishSynth.render(
-                SquishSynth.Voice(
-                    durationSeconds = 0.22f,
-                    pitchStartHz = 260f, pitchEndHz = 70f, pitchGlide = 0.11f,
-                    noiseCutoffScale = 5f, noiseResonance = 0.91f,
-                    bursts = floatArrayOf(0f, 0.06f, 0.13f),
-                    burstDecay = 28f, toneDecay = 14f, toneMix = 0.62f, noiseMix = 0.55f,
-                ), 1f, 1,
-            ),
-            "squeeze-bubbly" to SquishSynth.render(
-                SquishSynth.Voice(
-                    durationSeconds = 0.20f,
-                    pitchStartHz = 420f, pitchEndHz = 140f, pitchGlide = 0.07f,
-                    noiseCutoffScale = 6f, noiseResonance = 0.92f,
-                    bursts = floatArrayOf(0f, 0.03f, 0.065f, 0.105f, 0.15f),
-                    burstDecay = 44f, toneDecay = 20f, toneMix = 0.45f, noiseMix = 0.72f,
-                ), 1f, 3,
-            ),
-            // A press and its release back to back, as it plays in the app.
-            "press-and-release" to (SquishSynth.squeeze() + ShortArray(SquishSynth.SAMPLE_RATE / 5) + SquishSynth.release()),
-        )
+        val gap = ShortArray(SquishSynth.SAMPLE_RATE / 5)
+        val renders = buildMap {
+            put("squeeze", SquishSynth.squeeze())
+            put("release", SquishSynth.release())
+            put("squeeze-soft", SquishSynth.squeeze(intensity = 0.35f))
+            // A press and its release back to back, once per material, as it
+            // plays in the app. Jelly is the reference voice.
+            SquishyMaterial.entries.forEach { material ->
+                val name = material.name.lowercase().replace('_', '-')
+                put("press-and-release-$name", SquishSynth.squeeze(material) + gap + SquishSynth.release(material))
+            }
+        }
 
         renders.forEach { (name, samples) ->
             val file = File(outputDir, "$name.wav")

@@ -7,6 +7,7 @@ import kotlin.math.ln
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
+import kotlin.math.sqrt
 
 /**
  * The voice of the body, synthesised rather than sampled.
@@ -37,28 +38,85 @@ object SquishSynth {
     const val SAMPLE_RATE = 22_050
 
     /** Compression: the tone falls, the surface gives in stages. */
-    fun squeeze(intensity: Float = 1f, seed: Int = 1): ShortArray = render(
-        Voice(
-            durationSeconds = 0.19f,
-            pitchStartHz = 360f, pitchEndHz = 105f, pitchGlide = 0.09f,
-            noiseCutoffScale = 5.5f, noiseResonance = 0.90f,
-            bursts = floatArrayOf(0f, 0.045f, 0.10f),
-            burstDecay = 34f, toneDecay = 17f, toneMix = 0.55f, noiseMix = 0.62f,
-        ),
-        intensity, seed,
-    )
+    fun squeeze(
+        material: SquishyMaterial = SquishyMaterial.free,
+        intensity: Float = 1f,
+        seed: Int = 1,
+    ): ShortArray = render(voiceFor(material, SquishGesture.SQUEEZE), intensity, seed)
 
     /** Expansion: the tone rises as the surface snaps back out. */
-    fun release(intensity: Float = 1f, seed: Int = 2): ShortArray = render(
-        Voice(
-            durationSeconds = 0.21f,
-            pitchStartHz = 130f, pitchEndHz = 410f, pitchGlide = 0.11f,
-            noiseCutoffScale = 6.5f, noiseResonance = 0.86f,
-            bursts = floatArrayOf(0f, 0.07f),
-            burstDecay = 26f, toneDecay = 13f, toneMix = 0.50f, noiseMix = 0.55f,
-        ),
-        intensity, seed,
+    fun release(
+        material: SquishyMaterial = SquishyMaterial.free,
+        intensity: Float = 1f,
+        seed: Int = 2,
+    ): ShortArray = render(voiceFor(material, SquishGesture.RELEASE), intensity, seed)
+
+    private val SQUEEZE = Voice(
+        durationSeconds = 0.19f,
+        pitchStartHz = 360f, pitchEndHz = 105f, pitchGlide = 0.09f,
+        noiseCutoffScale = 5.5f, noiseResonance = 0.90f,
+        bursts = floatArrayOf(0f, 0.045f, 0.10f),
+        burstDecay = 34f, toneDecay = 17f, toneMix = 0.55f, noiseMix = 0.62f,
     )
+
+    private val RELEASE = Voice(
+        durationSeconds = 0.21f,
+        pitchStartHz = 130f, pitchEndHz = 410f, pitchGlide = 0.11f,
+        noiseCutoffScale = 6.5f, noiseResonance = 0.86f,
+        bursts = floatArrayOf(0f, 0.07f),
+        burstDecay = 26f, toneDecay = 13f, toneMix = 0.50f, noiseMix = 0.55f,
+    )
+
+    /**
+     * The voice of one material, derived from the constants that shape it.
+     *
+     * Nothing here is authored per material. The same three numbers that make a
+     * stress ball snap back on screen make it snap back in the ear:
+     *
+     * - **Stiffness sets pitch.** A stiffer spring has a higher natural frequency,
+     *   and it goes as the square root, so a body twice as stiff sounds a fifth
+     *   higher rather than an octave.
+     * - **Damping sets length.** More damping is a shorter sound; a bubble with
+     *   almost none rings on after the finger has gone, exactly as it wobbles.
+     * - **Coupling sets wetness.** A skin that carries a dent far around the body
+     *   is a liquid one, so the noise gets more resonance and an extra squelch;
+     *   dense foam gets a single dry burst.
+     *
+     * Jelly is the reference material, so it renders the base voice unchanged.
+     */
+    internal fun voiceFor(material: SquishyMaterial, gesture: SquishGesture): Voice {
+        val base = when (gesture) {
+            SquishGesture.SQUEEZE -> SQUEEZE
+            SquishGesture.RELEASE -> RELEASE
+        }
+        val reference = SquishyMaterial.free.tuning
+        val tuning = material.tuning
+
+        val pitchScale = sqrt(tuning.stiffness / reference.stiffness)
+        val decayScale = (tuning.damping / reference.damping).coerceIn(0.35f, 2.2f)
+        // About -0.3 for dense foam, 0 for jelly, 1 for the most liquid body.
+        val wetness = ((tuning.coupling - reference.coupling) / 64f).coerceIn(-0.4f, 1f)
+
+        val bursts = when {
+            wetness < -0.15f -> floatArrayOf(0f)
+            wetness > 0.5f -> base.bursts + (base.bursts.last() + 0.055f)
+            else -> base.bursts
+        }
+
+        return base.copy(
+            durationSeconds = (base.durationSeconds / decayScale).coerceIn(0.11f, 0.46f),
+            pitchStartHz = base.pitchStartHz * pitchScale,
+            pitchEndHz = base.pitchEndHz * pitchScale,
+            pitchGlide = (base.pitchGlide / decayScale).coerceIn(0.05f, 0.16f),
+            noiseResonance = (base.noiseResonance + wetness * 0.05f).coerceIn(0.6f, 0.95f),
+            bursts = bursts,
+            burstDecay = base.burstDecay * decayScale,
+            toneDecay = base.toneDecay * decayScale,
+            // A body that rings does so on its tone, not on its noise.
+            toneMix = base.toneMix * (1f + (1f - decayScale).coerceIn(-0.3f, 0.6f) * 0.5f),
+            noiseMix = base.noiseMix * (1f + wetness * 0.3f),
+        )
+    }
 
     /**
      * One gesture's worth of constants.

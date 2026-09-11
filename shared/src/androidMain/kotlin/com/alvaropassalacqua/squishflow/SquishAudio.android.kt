@@ -33,13 +33,18 @@ private class AndroidSquishAudio(context: Context) : SquishAudio {
 
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
 
-    private val waveforms: Map<SquishGesture, ShortArray> = mapOf(
-        SquishGesture.SQUEEZE to SquishSynth.squeeze(),
-        SquishGesture.RELEASE to SquishSynth.release(),
-    )
+    // Every material's voice, rendered up front: switching bodies mid-session must
+    // not cost a synthesis pass on the first press.
+    private val waveforms: Map<SquishyMaterial, Map<SquishGesture, ShortArray>> =
+        SquishyMaterial.entries.associateWith { material ->
+            mapOf(
+                SquishGesture.SQUEEZE to SquishSynth.squeeze(material),
+                SquishGesture.RELEASE to SquishSynth.release(material),
+            )
+        }
 
     private val pool: List<AudioTrack> = buildList {
-        val longest = waveforms.values.maxOf { it.size }
+        val longest = waveforms.values.maxOf { voices -> voices.values.maxOf { it.size } }
         repeat(POOL_SIZE) {
             runCatching { newTrack(longest) }.getOrNull()?.let(::add)
         }
@@ -67,12 +72,12 @@ private class AndroidSquishAudio(context: Context) : SquishAudio {
         .setTransferMode(AudioTrack.MODE_STATIC)
         .build()
 
-    override fun play(gesture: SquishGesture, intensity: Float) {
+    override fun play(gesture: SquishGesture, intensity: Float, material: SquishyMaterial) {
         if (pool.isEmpty()) return
         // A silenced phone is an answer already given.
         if (audioManager?.ringerMode != AudioManager.RINGER_MODE_NORMAL) return
 
-        val samples = waveforms[gesture] ?: return
+        val samples = waveforms[material]?.get(gesture) ?: return
         val track = pool[next]
         next = (next + 1) % pool.size
 

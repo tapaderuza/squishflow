@@ -198,7 +198,7 @@ internal fun SquishyStage(
                     detectTapGestures(
                         onPress = {
                             haptics.play(HapticAccent.TOUCH)
-                            audio.play(SquishGesture.SQUEEZE, intensity = 0.7f)
+                            audio.play(SquishGesture.SQUEEZE, intensity = 0.7f, material = material)
                             val centre = Offset(size.width / 2f, size.height / 2f)
                             body.impulse(
                                 angleRadians = touchAngle(it.x - centre.x, it.y - centre.y),
@@ -209,7 +209,7 @@ internal fun SquishyStage(
                         },
                         onTap = {
                             haptics.play(HapticAccent.RELEASE)
-                            audio.play(SquishGesture.RELEASE, intensity = 0.62f)
+                            audio.play(SquishGesture.RELEASE, intensity = 0.62f, material = material)
                             scatter()
                             onSquish()
                         },
@@ -224,7 +224,7 @@ internal fun SquishyStage(
                             fingerAngle = touchAngle(position.x - centre.x, position.y - centre.y)
                             fingerDepth = depthFor(position, centre, reach)
                             haptics.play(HapticAccent.TOUCH)
-                            audio.play(SquishGesture.SQUEEZE)
+                            audio.play(SquishGesture.SQUEEZE, material = material)
                             scatter()
                             wake()
                         },
@@ -236,6 +236,7 @@ internal fun SquishyStage(
                             audio.play(
                                 SquishGesture.RELEASE,
                                 intensity = (0.45f + fingerDepth * 1.4f).coerceAtMost(1f),
+                                material = material,
                             )
                             scope.launch {
                                 launch { driftX.animateTo(0f, spring(dampingRatio = Spring.DampingRatioMediumBouncy)) }

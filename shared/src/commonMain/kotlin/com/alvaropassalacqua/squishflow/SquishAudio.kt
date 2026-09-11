@@ -8,12 +8,13 @@ enum class SquishGesture { SQUEEZE, RELEASE }
 
 @Stable
 interface SquishAudio {
-    fun play(gesture: SquishGesture, intensity: Float = 1f)
+    /** Play [gesture] in the voice of [material]; see [SquishSynth.voiceFor]. */
+    fun play(gesture: SquishGesture, intensity: Float = 1f, material: SquishyMaterial = SquishyMaterial.free)
 }
 
 /** Audio that does nothing, for previews and tests. */
 object SilentAudio : SquishAudio {
-    override fun play(gesture: SquishGesture, intensity: Float) = Unit
+    override fun play(gesture: SquishGesture, intensity: Float, material: SquishyMaterial) = Unit
 }
 
 /**

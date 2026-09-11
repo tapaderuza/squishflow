@@ -122,3 +122,58 @@ class SquishSynthTest {
         assertTrue(peak < 100f, "Filter ran away to $peak")
     }
 }
+
+
+/**
+ * A material's voice comes from its physics, so these pin the direction of each
+ * mapping rather than a number: if somebody makes the stress ball stiffer, it
+ * should get higher, and the test should keep passing.
+ */
+class MaterialVoiceTest {
+
+    private fun ShortArray.peak(): Int = maxOf { abs(it.toInt()) }
+
+    @Test
+    fun jellyIsTheReferenceVoice() {
+        assertTrue(SquishSynth.squeeze(SquishyMaterial.JELLY).contentEquals(SquishSynth.squeeze()))
+    }
+
+    @Test
+    fun aStifferBodyIsHigherAndShorter() {
+        val jelly = SquishSynth.voiceFor(SquishyMaterial.JELLY, SquishGesture.SQUEEZE)
+        val foam = SquishSynth.voiceFor(SquishyMaterial.STRESS_BALL, SquishGesture.SQUEEZE)
+
+        assertTrue(foam.pitchStartHz > jelly.pitchStartHz, "Dense foam should sound higher")
+        assertTrue(foam.durationSeconds < jelly.durationSeconds, "and snap back sooner")
+        assertEquals(1, foam.bursts.size, "Foam does not squelch")
+    }
+
+    @Test
+    fun aBubbleRingsLongerThanAnything() {
+        val bubble = SquishSynth.squeeze(SquishyMaterial.BUBBLE).size
+        SquishyMaterial.entries.filter { it != SquishyMaterial.BUBBLE }.forEach { other ->
+            assertTrue(bubble > SquishSynth.squeeze(other).size, "Bubble should outlast ${other.displayName}")
+        }
+    }
+
+    @Test
+    fun aWaterBalloonIsWetterThanJelly() {
+        val jelly = SquishSynth.voiceFor(SquishyMaterial.JELLY, SquishGesture.SQUEEZE)
+        val balloon = SquishSynth.voiceFor(SquishyMaterial.WATER_BALLOON, SquishGesture.SQUEEZE)
+
+        assertTrue(balloon.noiseResonance > jelly.noiseResonance, "Liquid rings wetter")
+        assertTrue(balloon.bursts.size > jelly.bursts.size, "and squelches in more stages")
+    }
+
+    @Test
+    fun everyMaterialRendersCleanlyInBothGestures() {
+        SquishyMaterial.entries.forEach { material ->
+            listOf(SquishSynth.squeeze(material), SquishSynth.release(material)).forEach { buffer ->
+                val ms = buffer.size * 1000 / SquishSynth.SAMPLE_RATE
+                assertTrue(ms in 80..480, "${material.displayName}: ${ms}ms")
+                assertTrue(buffer.peak() in (Short.MAX_VALUE / 4) until Short.MAX_VALUE.toInt(), "${material.displayName}: peak ${buffer.peak()}")
+                assertTrue(abs(buffer.last().toInt()) < Short.MAX_VALUE / 8, "${material.displayName} clicks on end")
+            }
+        }
+    }
+}
