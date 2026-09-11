@@ -1,7 +1,9 @@
 package com.alvaropassalacqua.squishflow
 
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.exp
+import kotlin.math.ln
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
@@ -14,99 +16,126 @@ import kotlin.math.sin
  * a new material gets a voice by changing constants rather than by commissioning
  * a recording.
  *
- * The recipe is what a wet, soft object actually does:
+ * The first version was noise through a filter over a sine, and the first person
+ * to hear it on a real phone said it needed to be *squishier*. What a wet, soft
+ * object actually does, and what this version does:
  *
- * - **Noise through a resonant filter** is the squelch. Sweeping the cutoff
- *   *down* reads as compression, sweeping it *up* reads as the surface springing
- *   back — the same gesture in reverse.
- * - **A low sine** underneath is the mass of the thing, without which a squish
- *   sounds like static.
- * - **An exponential decay** because soft bodies absorb their own energy fast.
+ * - **A pitch that falls.** The "plop" of compression is a tone gliding down fast.
+ *   Release is the same glide up: the surface springing back. Without a pitched
+ *   component the sound reads as static, however well the noise is filtered.
+ * - **Wet resonance.** The noise runs through a filter with high resonance, so
+ *   it rings rather than hisses. The cutoff follows the pitch glide.
+ * - **Squelching in stages.** Liquid does not move once; the noise envelope has
+ *   two or three humps, so a single press sounds like something giving way.
+ * - **An exponential decay**, because soft bodies absorb their own energy fast.
  *
  * Everything is deterministic: the noise comes from a seeded generator, so the
- * output is reproducible and unit-testable rather than a different waveform on
- * every call.
+ * output is reproducible, unit-testable, and identical on both platforms.
  */
 object SquishSynth {
 
     const val SAMPLE_RATE = 22_050
 
-    /** Compression: the cutoff falls, like air being pushed out. */
+    /** Compression: the tone falls, the surface gives in stages. */
     fun squeeze(intensity: Float = 1f, seed: Int = 1): ShortArray = render(
-        intensity = intensity,
-        seed = seed,
-        durationSeconds = 0.13f,
-        cutoffStart = 2_600f,
-        cutoffEnd = 420f,
-        bodyHz = 88f,
-        decay = 26f,
+        Voice(
+            durationSeconds = 0.19f,
+            pitchStartHz = 360f, pitchEndHz = 105f, pitchGlide = 0.09f,
+            noiseCutoffScale = 5.5f, noiseResonance = 0.90f,
+            bursts = floatArrayOf(0f, 0.045f, 0.10f),
+            burstDecay = 34f, toneDecay = 17f, toneMix = 0.55f, noiseMix = 0.62f,
+        ),
+        intensity, seed,
     )
 
-    /** Expansion: the cutoff rises as the surface snaps back out. */
+    /** Expansion: the tone rises as the surface snaps back out. */
     fun release(intensity: Float = 1f, seed: Int = 2): ShortArray = render(
-        intensity = intensity,
-        seed = seed,
-        durationSeconds = 0.17f,
-        cutoffStart = 520f,
-        cutoffEnd = 3_100f,
-        bodyHz = 132f,
-        decay = 19f,
+        Voice(
+            durationSeconds = 0.21f,
+            pitchStartHz = 130f, pitchEndHz = 410f, pitchGlide = 0.11f,
+            noiseCutoffScale = 6.5f, noiseResonance = 0.86f,
+            bursts = floatArrayOf(0f, 0.07f),
+            burstDecay = 26f, toneDecay = 13f, toneMix = 0.50f, noiseMix = 0.55f,
+        ),
+        intensity, seed,
     )
 
     /**
-     * Render one gesture.
+     * One gesture's worth of constants.
      *
-     * [decay] is the exponent of the amplitude envelope: larger values die away
-     * faster. [cutoffStart] and [cutoffEnd] bound the filter sweep in hertz.
+     * @property pitchGlide seconds the tone takes to travel from start to end.
+     * @property noiseCutoffScale filter cutoff as a multiple of the current pitch.
+     * @property bursts onsets, in seconds, of each squelch hump.
      */
-    internal fun render(
-        intensity: Float,
-        seed: Int,
-        durationSeconds: Float,
-        cutoffStart: Float,
-        cutoffEnd: Float,
-        bodyHz: Float,
-        decay: Float,
-    ): ShortArray {
+    internal data class Voice(
+        val durationSeconds: Float,
+        val pitchStartHz: Float,
+        val pitchEndHz: Float,
+        val pitchGlide: Float,
+        val noiseCutoffScale: Float,
+        val noiseResonance: Float,
+        val bursts: FloatArray,
+        val burstDecay: Float,
+        val toneDecay: Float,
+        val toneMix: Float,
+        val noiseMix: Float,
+    )
+
+    internal fun render(voice: Voice, intensity: Float, seed: Int): ShortArray {
         val level = intensity.coerceIn(0f, 1f)
-        val count = (SAMPLE_RATE * durationSeconds).toInt()
+        val count = (SAMPLE_RATE * voice.durationSeconds).toInt()
         if (count <= 0 || level == 0f) return ShortArray(0)
 
         val noise = SeededNoise(seed)
         val filter = StateVariableFilter()
         val samples = FloatArray(count)
         var peak = 0f
+        var phase = 0f
+        val logRatio = ln(voice.pitchEndHz / voice.pitchStartHz)
 
         for (i in 0 until count) {
-            val t = i.toFloat() / count
+            val t = i.toFloat() / SAMPLE_RATE
 
-            // Sweep the resonance across the burst. Exponential rather than linear
-            // because pitch is heard logarithmically.
-            val cutoff = cutoffStart * exp(t * kotlin.math.ln(cutoffEnd / cutoffStart))
-            val squelch = filter.process(noise.next(), cutoff, resonance = 0.72f)
+            // The glide is exponential because pitch is heard logarithmically, and
+            // it finishes early so the tail sits on the destination note.
+            val glide = (t / voice.pitchGlide).coerceIn(0f, 1f)
+            val pitch = voice.pitchStartHz * exp(logRatio * glide)
 
-            // The body of the object, fading faster than the squelch above it.
-            val body = sin(2f * PI.toFloat() * bodyHz * i / SAMPLE_RATE) * exp(-decay * 1.6f * t)
+            phase += 2f * PI.toFloat() * pitch / SAMPLE_RATE
+            // A slightly rounded sine reads as a soft body rather than a beep.
+            val raw = sin(phase)
+            val tone = (raw - raw * raw * raw * 0.28f) * exp(-voice.toneDecay * t)
 
-            val envelope = attack(t) * exp(-decay * t)
-            val value = (squelch * 0.78f + body * 0.42f) * envelope
+            // Squelch: the sum of a few short humps, each its own decaying burst.
+            var envelope = 0f
+            for (onset in voice.bursts) {
+                val dt = t - onset
+                if (dt >= 0f) envelope += attack(dt) * exp(-voice.burstDecay * dt)
+            }
+            val squelch = filter.process(noise.next(), pitch * voice.noiseCutoffScale, voice.noiseResonance) * envelope
+
+            val value = tone * voice.toneMix + squelch * voice.noiseMix
             samples[i] = value
-            peak = max(peak, kotlin.math.abs(value))
+            peak = max(peak, abs(value))
         }
 
-        // Normalise so intensity is the only thing controlling loudness, and a
-        // quiet render never arrives as silence.
+        // A short fade at the very end, so a buffer cut by the duration cannot click.
+        val tail = (SAMPLE_RATE * 0.012f).toInt()
+        for (i in max(0, count - tail) until count) {
+            samples[i] *= (count - i).toFloat() / tail
+        }
+
         val scale = if (peak > 0f) (level * 0.86f) / peak else 0f
         return ShortArray(count) { i ->
-            val v = (samples[i] * scale * Short.MAX_VALUE)
+            val v = samples[i] * scale * Short.MAX_VALUE
             min(Short.MAX_VALUE.toFloat(), max(Short.MIN_VALUE.toFloat(), v)).toInt().toShort()
         }
     }
 
-    /** A 4 ms ramp. Starting at full amplitude would click. */
-    private fun attack(t: Float): Float {
-        val attackFraction = 0.03f
-        return if (t < attackFraction) t / attackFraction else 1f
+    /** A 3 ms ramp on each burst. Starting at full amplitude would click. */
+    private fun attack(dt: Float): Float {
+        val ramp = 0.003f
+        return if (dt < ramp) dt / ramp else 1f
     }
 }
 

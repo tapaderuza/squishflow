@@ -691,12 +691,27 @@ private fun ReleaseMeter(released: Int) {
     }
 }
 
+/**
+ * A way to buy focus time back.
+ *
+ * Every action runs on trust: a short preparation countdown, then a button. The
+ * camera-verified burpee that used to sit here has gone. It could not work on
+ * iOS without a Mac to build it on, it cost fifty megabytes of pose model on
+ * Android, and above all a product whose voice is "no guilt" should not point a
+ * camera at somebody to check they did a burpee.
+ *
+ * The one thing the app *can* verify honestly is a squish, so that action counts
+ * real ones on the body instead of running a timer.
+ */
 private data class RescueAction(
     val title: String,
     val instruction: String,
     val rewardSeconds: Int,
     val preparationSeconds: Int,
+    val countsSquishes: Boolean = false,
 )
+
+private const val RESCUE_SQUISHES = 10
 
 @Composable
 private fun RescueModeScreen(
@@ -705,23 +720,15 @@ private fun RescueModeScreen(
 ) {
     val actions = remember {
         listOf(
-            RescueAction("1 burpee", "Verified by camera.", 5 * 60, 0),
+            RescueAction("1 burpee", "Down, floor, up. One is enough.", 5 * 60, 12),
             RescueAction("20 jumping jacks", "Move your whole body and change your state.", 5 * 60, 15),
             RescueAction("Guided breathing", "Breathe in for 4. Out for 6. Repeat.", 3 * 60, 30),
-            RescueAction("10 squishes", "Put the restlessness straight into Squishy.", 60, 8),
+            RescueAction("10 squishes", "Put the restlessness straight into Squishy.", 60, 0, countsSquishes = true),
         )
     }
     var selected by remember { mutableStateOf<RescueAction?>(null) }
     var countdown by remember { mutableIntStateOf(0) }
-    var cameraConsent by remember { mutableStateOf(false) }
-
-    if (selected?.title == "1 burpee" && cameraConsent) {
-        BurpeeCameraVerifier(
-            onVerified = { onReward(5 * 60) },
-            onCancel = { cameraConsent = false },
-        )
-        return
-    }
+    var squishes by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(selected) {
         val action = selected ?: return@LaunchedEffect
@@ -745,7 +752,7 @@ private fun RescueModeScreen(
                 TextButton(onClick = {
                     if (selected == null) onDismiss() else {
                         selected = null
-                        cameraConsent = false
+                        squishes = 0
                     }
                 }) { Text(if (selected == null) "Close" else "Back", color = Muted) }
                 Text("RESCUE MODE", color = Coral, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.8.sp)
@@ -792,42 +799,34 @@ private fun RescueModeScreen(
                 }
             } else {
                 val action = selected!!
-                if (action.title == "1 burpee") {
-                    Text(
-                        "Camera verification",
-                        color = Ink,
-                        fontSize = 30.sp,
-                        lineHeight = 36.sp,
-                        fontWeight = FontWeight.Light,
+                if (action.countsSquishes) {
+                    val done = squishes >= RESCUE_SQUISHES
+                    SquishyStage(
+                        state = if (done) SquishyState.RELAXING else SquishyState.TENSE,
+                        progress = squishes.toFloat() / RESCUE_SQUISHES,
+                        accent = if (done) Sage else Coral,
+                        onSquish = { squishes = (squishes + 1).coerceAtMost(RESCUE_SQUISHES) },
+                        stageSize = 250.dp,
                     )
                     Spacer(Modifier.height(14.dp))
                     Text(
-                        "We read your pose live to recognise a full burpee: standing, floor, standing.",
-                        color = Muted,
-                        fontSize = 14.sp,
-                        textAlign = TextAlign.Center,
-                        lineHeight = 21.sp,
+                        if (done) "That is the restlessness dealt with." else "${RESCUE_SQUISHES - squishes} to go",
+                        color = if (done) Sage else Ink,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Light,
                     )
+                    Spacer(Modifier.height(8.dp))
+                    Text(action.instruction, color = Muted, fontSize = 14.sp, textAlign = TextAlign.Center, lineHeight = 21.sp)
                     Spacer(Modifier.height(28.dp))
-                    Surface(color = Sage.copy(alpha = 0.12f), shape = RoundedCornerShape(22.dp)) {
-                        Column(Modifier.fillMaxWidth().padding(20.dp)) {
-                            Text("PRIVACY", color = Sage, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.4.sp)
-                            Spacer(Modifier.height(8.dp))
-                            Text(
-                                "Everything is analysed on this device. No image is recorded, stored or sent.",
-                                color = Ink,
-                                fontSize = 13.sp,
-                                lineHeight = 19.sp,
-                            )
-                        }
-                    }
-                    Spacer(Modifier.height(24.dp))
                     Button(
-                        onClick = { cameraConsent = true },
+                        onClick = { onReward(action.rewardSeconds) },
+                        enabled = done,
                         modifier = Modifier.fillMaxWidth().height(58.dp),
                         shape = RoundedCornerShape(29.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Ink),
-                    ) { Text("Got it — turn on camera", fontWeight = FontWeight.Bold) }
+                    ) {
+                        Text(if (done) "Claim the minute" else "Squeeze", fontWeight = FontWeight.Bold)
+                    }
                 } else {
                     Text(
                         if (countdown > 0) countdown.toString() else "READY",
