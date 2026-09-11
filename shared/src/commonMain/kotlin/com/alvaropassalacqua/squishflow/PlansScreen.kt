@@ -51,6 +51,7 @@ import com.revenuecat.purchases.kmp.Purchases
 import com.revenuecat.purchases.kmp.ktx.awaitOfferings
 import com.revenuecat.purchases.kmp.ktx.awaitPurchase
 import com.revenuecat.purchases.kmp.ktx.awaitRestore
+import com.revenuecat.purchases.kmp.models.DiscountPaymentMode
 import com.revenuecat.purchases.kmp.models.Package
 import com.revenuecat.purchases.kmp.models.PurchasesTransactionException
 import kotlinx.coroutines.launch
@@ -165,7 +166,11 @@ internal fun PlansScreen(
 
                 else -> packages.orEmpty().forEachIndexed { index, pkg ->
                     val price = pkg.storeProduct.price
+                    val trial = pkg.storeProduct.introductoryDiscount
+                        ?.takeIf { it.paymentMode == DiscountPaymentMode.FREE_TRIAL }
+                        ?.let { trialLine(it.subscriptionPeriod.value, it.subscriptionPeriod.unit) }
                     val line = planLine(pkg.packageType, price.formatted, price.amountMicros)
+                        .let { if (trial != null) it.copy(note = "$trial, then ${it.note.replaceFirstChar(Char::lowercase)}") else it }
                     PlanRow(
                         line = line,
                         price = price.formatted,
@@ -214,7 +219,14 @@ internal fun PlansScreen(
                     disabledContentColor = OnLight.copy(alpha = 0.6f),
                 ),
             ) {
-                Text(if (busy) "One moment" else "Unlock every body", fontWeight = FontWeight.Bold)
+                Text(
+                    when {
+                        busy -> "One moment"
+                        chosen?.storeProduct?.introductoryDiscount?.paymentMode == DiscountPaymentMode.FREE_TRIAL -> "Start free"
+                        else -> "Unlock every body"
+                    },
+                    fontWeight = FontWeight.Bold,
+                )
             }
             Spacer(Modifier.height(4.dp))
             TextButton(

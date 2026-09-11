@@ -1,6 +1,7 @@
 package com.alvaropassalacqua.squishflow
 
 import com.revenuecat.purchases.kmp.models.PackageType
+import com.revenuecat.purchases.kmp.models.PeriodUnit
 
 /**
  * What one plan row says.
@@ -39,6 +40,23 @@ internal fun monthlyEquivalent(formatted: String, amountMicros: Long, months: In
     val whole = cents / 100
     val fraction = (cents % 100).toString().padStart(2, '0')
     return "$prefix$whole$separator$fraction$suffix"
+}
+
+/**
+ * "First week free", from a free-trial period the store attached to a plan.
+ *
+ * Trials are set up in the stores, not in the app, so the row only says what
+ * the product carries; adding one later needs no release. Null when there is
+ * no trial or the period is not one the sentence can say plainly.
+ */
+internal fun trialLine(value: Int, unit: PeriodUnit): String? {
+    if (value <= 0) return null
+    return when (unit) {
+        PeriodUnit.DAY -> if (value == 7) "First week free" else if (value == 1) "First day free" else "First $value days free"
+        PeriodUnit.WEEK -> if (value == 1) "First week free" else "First $value weeks free"
+        PeriodUnit.MONTH -> if (value == 1) "First month free" else "First $value months free"
+        PeriodUnit.YEAR, PeriodUnit.UNKNOWN -> null
+    }
 }
 
 /** Which row to preselect: the yearly plan if there is one, else the first. */

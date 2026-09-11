@@ -1,6 +1,7 @@
 package com.alvaropassalacqua.squishflow
 
 import com.revenuecat.purchases.kmp.models.PackageType
+import com.revenuecat.purchases.kmp.models.PeriodUnit
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -59,5 +60,15 @@ class PlansTest {
         assertTrue(RevenueCatManager.isUsableKey("goog_abc", debug = false))
         assertTrue(RevenueCatManager.isUsableKey("appl_abc", debug = false))
         assertTrue(!RevenueCatManager.isUsableKey("", debug = true))
+    }
+
+    @Test
+    fun aStoreTrialIsSaidInPlainWords() {
+        assertEquals("First week free", trialLine(7, PeriodUnit.DAY))
+        assertEquals("First week free", trialLine(1, PeriodUnit.WEEK))
+        assertEquals("First 3 days free", trialLine(3, PeriodUnit.DAY))
+        assertEquals("First month free", trialLine(1, PeriodUnit.MONTH))
+        assertEquals(null, trialLine(0, PeriodUnit.DAY))
+        assertEquals(null, trialLine(1, PeriodUnit.YEAR), "A year free is not a sentence the app should ever say")
     }
 }
