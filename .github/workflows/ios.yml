@@ -24,6 +24,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Compose Multiplatform 1.11 references iOS 26 APIs such as
+      # UIViewLayoutRegion, so the default Xcode 16 SDK cannot link the app.
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
