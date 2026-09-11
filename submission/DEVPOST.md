@@ -42,6 +42,8 @@ Two consequences, both unit-tested: a lapsed subscription keeps everything you e
 
 The materials are not reskins. A test asserts that a stress ball settles in fewer frames than jelly and a water balloon in more, and another that it sounds higher and shorter. If two of them ever came to rest at the same rate, the entitlement would be selling paint. The shelf plays each body's voice when you tap it, locked or not: the difference is heard before it is paid for.
 
+The plans screen is drawn in the app's own style over RevenueCat's SDK: three plain rows with the yearly price explained per month, a store trial said in plain words when one exists, Restore purchases, privacy and terms beside the button, and no countdown or "most popular" badge. A purchase unlocks on the spot. The release build is minified, signed from the environment and refuses the Test Store key, so the distance from here to charging real money is two store accounts and two keys — `docs/MONETIZATION_LAUNCH.md` is the checklist.
+
 ### Built with
 
 Kotlin Multiplatform and Compose Multiplatform. The UI, timer, planner, physics and audio synthesis are all in `commonMain`; the platform source sets hold only what genuinely differs — haptics, persistence, app selection. RevenueCat's KMP SDK handles offerings, purchase, restore and the Pro entitlement; the plans screen itself is drawn in the app's own style.
