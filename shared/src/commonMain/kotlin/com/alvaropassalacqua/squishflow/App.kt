@@ -82,6 +82,9 @@ fun App() {
         var handledCompletions by remember { mutableIntStateOf(0) }
 
         LaunchedEffect(Unit) {
+            // Before anything else: a block the system killed us in the middle of
+            // is either still running or already earned.
+            timerViewModel.resumeIfSaved()
             if (RevenueCatManager.configure()) RevenueCatManager.refreshEntitlement()
         }
 

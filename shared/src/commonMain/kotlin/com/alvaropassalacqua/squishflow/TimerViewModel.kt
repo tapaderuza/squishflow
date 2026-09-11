@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 import kotlin.time.TimeSource
 
 enum class SquishyState { TENSE, RELAXING, COMPRESSED }
@@ -35,9 +37,19 @@ data class TimerUiState(
 private val monotonicOrigin = TimeSource.Monotonic.markNow()
 private fun monotonicMillis(): Long = monotonicOrigin.elapsedNow().inWholeMilliseconds
 
+@OptIn(ExperimentalTime::class)
+private fun wallClockMillis(): Long = Clock.System.now().toEpochMilliseconds()
+
 class TimerViewModel internal constructor(
     private val nowMillis: () -> Long = ::monotonicMillis,
     private val autoTick: Boolean = true,
+    /**
+     * Wall-clock time, used only to write the deadline down. The countdown itself
+     * stays on the monotonic clock so a changed system time cannot shorten or
+     * stretch a block; wall-clock is what survives the process.
+     */
+    private val wallMillis: () -> Long = ::wallClockMillis,
+    private val store: SessionStore = SquishySessionStore,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(TimerUiState())
     val uiState: StateFlow<TimerUiState> = _uiState.asStateFlow()
@@ -59,12 +71,42 @@ class TimerViewModel internal constructor(
     }
 
     fun startSession() {
-        timerJob?.cancel()
         val seconds = _uiState.value.selectedMinutes * 60
-        deadlineMillis = nowMillis() + seconds * 1_000L
+        beginCountdown(remainingSeconds = seconds, totalSeconds = seconds)
+        store.save(SavedSession(deadlineEpochMillis = wallMillis() + seconds * 1_000L, totalSeconds = seconds))
+    }
+
+    /**
+     * Pick up a block the process was killed in the middle of.
+     *
+     * If its deadline is still ahead, the countdown resumes with what is left.
+     * If it passed while the app was gone, the block is credited as finished:
+     * the person did the focusing, and the app being reclaimed by the system
+     * is not their failure.
+     */
+    fun resumeIfSaved() {
+        val saved = store.load() ?: return
+        if (_uiState.value.isSessionActive) return
+        val remainingMillis = saved.deadlineEpochMillis - wallMillis()
+        if (remainingMillis > 0) {
+            val remaining = ((remainingMillis + 999L) / 1_000L).toInt()
+            _uiState.value = _uiState.value.copy(selectedMinutes = (saved.totalSeconds / 60).coerceAtLeast(1))
+            beginCountdown(remainingSeconds = remaining, totalSeconds = saved.totalSeconds)
+        } else {
+            _uiState.value = _uiState.value.copy(
+                remainingSeconds = 0, totalSeconds = saved.totalSeconds,
+                squishyState = SquishyState.RELAXING,
+            )
+            completeSession()
+        }
+    }
+
+    private fun beginCountdown(remainingSeconds: Int, totalSeconds: Int) {
+        timerJob?.cancel()
+        deadlineMillis = nowMillis() + remainingSeconds * 1_000L
         _uiState.value = _uiState.value.copy(
-            squishyState = SquishyState.RELAXING, remainingSeconds = seconds, totalSeconds = seconds,
-            lastSessionCompleted = false, boostsUsed = 0,
+            squishyState = SquishyState.RELAXING, remainingSeconds = remainingSeconds,
+            totalSeconds = totalSeconds, lastSessionCompleted = false, boostsUsed = 0,
         )
         if (autoTick) timerJob = viewModelScope.launch {
             while (_uiState.value.isSessionActive) {
@@ -89,6 +131,7 @@ class TimerViewModel internal constructor(
         timerJob?.cancel()
         timerJob = null
         deadlineMillis = null
+        store.clear()
         _uiState.value = current.copy(
             squishyState = SquishyState.TENSE, remainingSeconds = 0,
             completedSessions = current.completedSessions + 1,
@@ -103,6 +146,9 @@ class TimerViewModel internal constructor(
         if (!current.isSessionActive || current.boostsUsed >= 1 || deadline == null) return
         val rewarded = minOf(seconds, current.remainingSeconds)
         deadlineMillis = deadline - rewarded * 1_000L
+        store.load()?.let { saved ->
+            store.save(saved.copy(deadlineEpochMillis = saved.deadlineEpochMillis - rewarded * 1_000L))
+        }
         _uiState.value = current.copy(
             boostsUsed = current.boostsUsed + 1, rescuedSeconds = current.rescuedSeconds + rewarded,
         )
@@ -115,6 +161,7 @@ class TimerViewModel internal constructor(
         timerJob?.cancel()
         timerJob = null
         deadlineMillis = null
+        store.clear()
         _uiState.value = current.copy(
             squishyState = SquishyState.COMPRESSED,
             failedSessions = current.failedSessions + 1, lastSessionCompleted = false,

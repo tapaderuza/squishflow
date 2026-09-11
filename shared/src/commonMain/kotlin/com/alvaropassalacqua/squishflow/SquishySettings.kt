@@ -54,6 +54,11 @@ expect object SquishySettings {
      */
     fun hasDeclinedProtection(): Boolean
     fun markProtectionDeclined()
+
+    /** The running block, as (deadline epoch millis, total seconds), or null. */
+    fun loadSession(): Pair<Long, Int>?
+    fun saveSession(deadlineEpochMillis: Long, totalSeconds: Int)
+    fun clearSession()
 }
 
 /** Everything the journey screen reports, read once from storage. */

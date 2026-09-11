@@ -11,6 +11,8 @@ actual object SquishySettings {
     private const val COMPLETED = "completed_blocks_v1"
     private const val FAILED = "failed_blocks_v1"
     private const val DECLINED = "protection_declined_v1"
+    private const val SESSION_DEADLINE = "session_deadline_epoch_v1"
+    private const val SESSION_TOTAL = "session_total_seconds_v1"
 
     private fun prefs() = FocusPreferences.contextOrNull()
         ?.getSharedPreferences(FILE, Context.MODE_PRIVATE)
@@ -55,5 +57,24 @@ actual object SquishySettings {
 
     actual fun markProtectionDeclined() {
         prefs()?.edit()?.putBoolean(DECLINED, true)?.apply()
+    }
+
+    actual fun loadSession(): Pair<Long, Int>? {
+        val store = prefs() ?: return null
+        if (!store.contains(SESSION_DEADLINE)) return null
+        return store.getLong(SESSION_DEADLINE, 0L) to store.getInt(SESSION_TOTAL, 0)
+    }
+
+    actual fun saveSession(deadlineEpochMillis: Long, totalSeconds: Int) {
+        // commit() rather than apply(): this is the one write that must land
+        // before the process can die, which is the whole reason it exists.
+        prefs()?.edit()
+            ?.putLong(SESSION_DEADLINE, deadlineEpochMillis)
+            ?.putInt(SESSION_TOTAL, totalSeconds)
+            ?.commit()
+    }
+
+    actual fun clearSession() {
+        prefs()?.edit()?.remove(SESSION_DEADLINE)?.remove(SESSION_TOTAL)?.commit()
     }
 }

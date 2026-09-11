@@ -10,6 +10,8 @@ actual object SquishySettings {
     private const val COMPLETED = "squish_completed_blocks_v1"
     private const val FAILED = "squish_failed_blocks_v1"
     private const val DECLINED = "squish_protection_declined_v1"
+    private const val SESSION_DEADLINE = "squish_session_deadline_v1"
+    private const val SESSION_TOTAL = "squish_session_total_v1"
 
     actual fun loadMaterialKey(): String? =
         NSUserDefaults.standardUserDefaults.stringForKey(MATERIAL)
@@ -58,5 +60,24 @@ actual object SquishySettings {
 
     actual fun markProtectionDeclined() {
         NSUserDefaults.standardUserDefaults.setBool(true, DECLINED)
+    }
+
+    actual fun loadSession(): Pair<Long, Int>? {
+        val defaults = NSUserDefaults.standardUserDefaults
+        if (defaults.objectForKey(SESSION_DEADLINE) == null) return null
+        return defaults.integerForKey(SESSION_DEADLINE) to defaults.integerForKey(SESSION_TOTAL).toInt()
+    }
+
+    actual fun saveSession(deadlineEpochMillis: Long, totalSeconds: Int) {
+        val defaults = NSUserDefaults.standardUserDefaults
+        defaults.setInteger(deadlineEpochMillis, SESSION_DEADLINE)
+        defaults.setInteger(totalSeconds.toLong(), SESSION_TOTAL)
+        defaults.synchronize()
+    }
+
+    actual fun clearSession() {
+        val defaults = NSUserDefaults.standardUserDefaults
+        defaults.removeObjectForKey(SESSION_DEADLINE)
+        defaults.removeObjectForKey(SESSION_TOTAL)
     }
 }
