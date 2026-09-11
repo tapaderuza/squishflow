@@ -70,6 +70,7 @@ Because only one body is free at the start, tapping a locked one hands it to you
   <img src="evidence/unlock.png" width="30%" alt="Earning a squishy">
   <img src="evidence/screen_journey.png" width="30%" alt="The shelf">
   <img src="evidence/premium.png" width="30%" alt="The upgrade screen shows the bodies, not a badge">
+  <img src="evidence/plans.png" width="30%" alt="The plans, in the app's own style">
 </p>
 
 ### The materials are not reskins

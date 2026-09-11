@@ -25,7 +25,8 @@ SHOTS = [
     ("evidence/screen_focus.png", "04-the-focus-screen.png"),
     ("evidence/unlock.png", "05-earning-a-body.png"),
     ("evidence/screen_journey.png", "06-the-shelf.png"),
-    ("evidence/ios/ios-welcome.png", "07-same-app-on-iphone.png"),
+    ("evidence/plans.png", "07-the-plans.png"),
+    ("evidence/ios/ios-welcome.png", "08-same-app-on-iphone.png"),
 ]
 
 
