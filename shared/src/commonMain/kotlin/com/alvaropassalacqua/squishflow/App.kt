@@ -489,6 +489,7 @@ private fun FocusScreen(
     onManageApps: () -> Unit,
 ) {
     var tensionReleased by remember { mutableIntStateOf(0) }
+    val localHour = remember { localHourOfDay() }
     // Every squeeze earns a word in the line above the body, for a beat.
     var squeezes by remember { mutableIntStateOf(0) }
     var reaction by remember { mutableStateOf<String?>(null) }
@@ -543,6 +544,7 @@ private fun FocusScreen(
                     minutesToNextBody = minutesToNextBody,
                     remainingSeconds = if (uiState.isSessionActive) uiState.remainingSeconds else null,
                     daysAway = daysAway,
+                    hour = localHour,
                 ),
                 color = if (reaction != null) Ink else Muted,
                 fontSize = 15.sp,

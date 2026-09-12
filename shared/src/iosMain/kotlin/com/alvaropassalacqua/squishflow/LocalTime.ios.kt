@@ -1,0 +1,8 @@
+package com.alvaropassalacqua.squishflow
+
+import platform.Foundation.NSCalendar
+import platform.Foundation.NSCalendarUnitHour
+import platform.Foundation.NSDate
+
+actual fun localHourOfDay(): Int =
+    NSCalendar.currentCalendar.component(NSCalendarUnitHour, fromDate = NSDate()).toInt()

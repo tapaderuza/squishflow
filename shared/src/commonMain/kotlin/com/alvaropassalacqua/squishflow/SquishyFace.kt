@@ -53,7 +53,12 @@ internal data class FaceMood(
  * separate animatable from blinking so the two never cancel each other.
  */
 @Composable
-internal fun rememberFaceMood(reducedMotion: Boolean, contented: Boolean = false): FaceMood {
+internal fun rememberFaceMood(
+    reducedMotion: Boolean,
+    contented: Boolean = false,
+    /** Late at night the lids sit lower; see [isLateNight]. */
+    sleepy: Boolean = false,
+): FaceMood {
     // Starts closed: the first thing the face does is open its eyes.
     val openness = remember { Animatable(0.04f) }
     val gazeX = remember { Animatable(0f) }
@@ -109,7 +114,7 @@ internal fun rememberFaceMood(reducedMotion: Boolean, contented: Boolean = false
     }
 
     return FaceMood(
-        openness = openness.value * (1f - 0.9f * rest.value),
+        openness = openness.value * (1f - 0.9f * rest.value) * (if (sleepy) 0.78f else 1f),
         gaze = Offset(gazeX.value, gazeY.value),
         contentment = rest.value,
     )

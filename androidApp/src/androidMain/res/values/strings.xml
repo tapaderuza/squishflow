@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">Squishflow</string>
-    <string name="focus_guard_description">Interrumpe únicamente las aplicaciones que eliges y te devuelve a Squishy. No lee ni almacena el contenido de la pantalla.</string>
+    <string name="focus_guard_description">Interrupts only the apps you chose and brings you back to Squishy. It never reads or stores what is on your screen.</string>
 </resources>

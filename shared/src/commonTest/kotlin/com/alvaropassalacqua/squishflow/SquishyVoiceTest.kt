@@ -20,6 +20,7 @@ class SquishyVoiceTest {
                     add(SquishyVoice.line(state, justCompleted, blocks, remainingSeconds = 45))
                     add(SquishyVoice.line(state, justCompleted, blocks, daysAway = 9))
                     add(SquishyVoice.reaction(state, blocks))
+                    add(SquishyVoice.line(state, justCompleted, blocks, hour = 1))
                 }
             }
         }
@@ -163,6 +164,17 @@ class SquishyVoiceTest {
         // returned to anything yet.
         val first = SquishyVoice.line(SquishyState.TENSE, false, 0)
         assertEquals(first, SquishyVoice.line(SquishyState.TENSE, false, 0, daysAway = 10))
+    }
+
+    @Test
+    fun lateAtNightItSaysSoOnceAndStillLetsYouStart() {
+        val day = SquishyVoice.line(SquishyState.TENSE, false, 3, hour = 15)
+        val night = SquishyVoice.line(SquishyState.TENSE, false, 3, hour = 1)
+        assertTrue(day != night, "One in the morning is not three in the afternoon")
+        assertTrue(!night.contains("should", true) && !night.contains("sleep", true), "Not a lecture: $night")
+        assertTrue(isLateNight(23) && isLateNight(4) && !isLateNight(5) && !isLateNight(22))
+        // A first block or a return after days away still outranks the hour.
+        assertEquals(SquishyVoice.line(SquishyState.TENSE, false, 0), SquishyVoice.line(SquishyState.TENSE, false, 0, hour = 2))
     }
 
     @Test

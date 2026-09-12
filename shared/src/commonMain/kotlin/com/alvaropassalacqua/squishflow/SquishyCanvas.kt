@@ -85,7 +85,8 @@ internal fun SquishyStage(
         else -> 2800
     }
     val body = remember { SquishyPhysics(tuning = material.tuning) }
-    val mood = rememberFaceMood(reducedMotion, contented)
+    val sleepy = remember { isLateNight(localHourOfDay()) }
+    val mood = rememberFaceMood(reducedMotion, contented, sleepy)
     val haptics = rememberHaptics()
     val audio = rememberSquishAudio()
     val scope = rememberCoroutineScope()

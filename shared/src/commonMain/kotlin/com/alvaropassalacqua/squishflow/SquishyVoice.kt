@@ -46,6 +46,12 @@ object SquishyVoice {
         "The gap does not count. This does.",
     )
 
+    private val late = listOf(
+        "Late. One block, then bed.",
+        "Still up. One short one, then stop.",
+        "Late one. Keep it small.",
+    )
+
     private val closing = listOf(
         "Last minute. Let it finish.",
         "Nearly. Stay with it.",
@@ -106,6 +112,7 @@ object SquishyVoice {
         minutesToNextBody: Int? = null,
         remainingSeconds: Int? = null,
         daysAway: Int? = null,
+        hour: Int? = null,
     ): String {
         val turn = completedBlocks.coerceAtLeast(0)
         val isClosing = remainingSeconds != null && remainingSeconds in 1..CLOSING_SECONDS
@@ -117,6 +124,7 @@ object SquishyVoice {
             justCompleted -> completed.rotate(turn)
             completedBlocks == 0 -> "First block. Start smaller than you think."
             daysAway != null && daysAway >= RETURNING_DAYS -> returning.rotate(turn)
+            hour != null && isLateNight(hour) -> late.rotate(turn)
             minutesToNextBody != null && minutesToNextBody in 1..ANTICIPATION_MINUTES ->
                 "$minutesToNextBody more minutes to the next squishy."
             else -> idle.rotate(turn)
