@@ -32,7 +32,7 @@ The renderer passes a Catmull-Rom curve exactly through the simulated samples, s
 
 ### It has a face that does things nobody asked it to
 
-A companion that only moves when touched is a control, not a character. Squishy opens its eyes when a screen appears rather than arriving with them open. It blinks on an irregular rhythm — a fixed interval reads as a metronome — and its gaze drifts a few pixels every few seconds, which is what makes eyes read as thinking rather than painted on. The eyes narrow with how hard you are pressing. Left alone for half a minute or so it stretches once and relaxes: the second mode of the ring, kept distinct from the three-lobed completion pulse so it reads as a sigh rather than as excitement. In the last minute of a block the breath it has been slowing for twenty minutes picks up again. Under reduced motion all of it stops, because none of it is movement you asked for.
+A companion that only moves when touched is a control, not a character. Squishy opens its eyes when a screen appears rather than arriving with them open. It blinks on an irregular rhythm — a fixed interval reads as a metronome — and its gaze drifts a few pixels every few seconds, which is what makes eyes read as thinking rather than painted on. The eyes narrow with how hard you are pressing. Left alone for half a minute or so it stretches once and relaxes: the second mode of the ring, kept distinct from the three-lobed completion pulse so it reads as a sigh rather than as excitement. In the last minute of a block the breath it has been slowing for twenty minutes picks up again. A hard press purses the mouth into a small "o". Every squeeze earns a word in the line above it for a beat — *Oof.*, *Mm.*, *That one went deep.* — and mid-block the set shrinks to three words that point back at the work. Where a finished block lands, the eyes close for a moment and the smile widens: not a cheer, a sigh. Between eleven at night and five the lids sit lower and the line says *Still up. One short one, then stop.* Under reduced motion all of it stops, because none of it is movement you asked for.
 
 ### It has a voice, and no audio files
 
@@ -77,7 +77,7 @@ Because only one body is free at the start, tapping a locked one hands it to you
 
 Each one retunes the solver — stiffness, damping, neighbour coupling, stretch limit. A test asserts the difference is real: dense foam settles in fewer frames than jelly and a water balloon in more. If two materials ever came to rest at the same rate, the entitlement would be selling paint.
 
-Hue deliberately stays out of it. Colour carries session state across the whole product — coral is tension, sage is focus, lavender is interruption — and a material that repainted the body would break the one signal the user has learned. Materials differ by finish: gloss, rim, speckle, translucency.
+Hue deliberately stays out of it. Colour carries session state across the whole product — coral is tension, sage is focus, lavender is interruption — and a material that repainted the body would break the one signal the user has learned. Materials differ by finish: gloss, rim, speckle, translucency. And by face: each has a temperament — dense foam has smaller eyes and a flatter smile, mochi is heavy-lidded with the widest one, the water balloon is wide-eyed with an easy grin, the bubble a little startled — as multipliers on one face, so every state and mood still works. A test insists no two are the same.
 
 ## One codebase, two platforms
 
