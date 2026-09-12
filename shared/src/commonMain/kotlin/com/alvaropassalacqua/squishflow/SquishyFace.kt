@@ -40,15 +40,35 @@ internal data class FaceMood(
     val openness: Float = 1f,
     /** Where the eyes have wandered to, in pixels. */
     val gaze: Offset = Offset.Zero,
+    /**
+     * 0 to 1: eyes gently shut and the smile widens. The face a block earns
+     * when it finishes — not a cheer, a sigh.
+     */
+    val contentment: Float = 0f,
 )
 
+/**
+ * @param contented true on the screen a finished block lands on: the eyes
+ * close for a moment and the smile widens, then the face comes back. Kept on a
+ * separate animatable from blinking so the two never cancel each other.
+ */
 @Composable
-internal fun rememberFaceMood(reducedMotion: Boolean): FaceMood {
+internal fun rememberFaceMood(reducedMotion: Boolean, contented: Boolean = false): FaceMood {
     // Starts closed: the first thing the face does is open its eyes.
     val openness = remember { Animatable(0.04f) }
     val gazeX = remember { Animatable(0f) }
     val gazeY = remember { Animatable(0f) }
+    val rest = remember { Animatable(0f) }
     val still by rememberUpdatedState(reducedMotion)
+
+    LaunchedEffect(contented) {
+        if (!contented) { rest.snapTo(0f); return@LaunchedEffect }
+        // After the eyes have opened, not instead of it.
+        delay(if (still) 0 else 1_100)
+        rest.animateTo(1f, tween(if (still) 0 else 420, easing = FastOutSlowInEasing))
+        delay(1_500)
+        rest.animateTo(0f, tween(if (still) 0 else 560, easing = FastOutSlowInEasing))
+    }
 
     LaunchedEffect(reducedMotion) {
         if (still) {
@@ -89,8 +109,9 @@ internal fun rememberFaceMood(reducedMotion: Boolean): FaceMood {
     }
 
     return FaceMood(
-        openness = openness.value,
+        openness = openness.value * (1f - 0.9f * rest.value),
         gaze = Offset(gazeX.value, gazeY.value),
+        contentment = rest.value,
     )
 }
 
@@ -147,15 +168,33 @@ internal fun SquishyFace(
             center = Offset(size.width * 0.65f + lookX, size.height * 0.52f + lookY),
         )
 
-        drawArc(
-            color = OnLight,
-            startAngle = if (state == SquishyState.COMPRESSED) 205f else 20f,
-            sweepAngle = if (state == SquishyState.RELAXING) 140f else 130f,
-            useCenter = false,
-            topLeft = Offset(size.width * 0.43f + lookX, size.height * 0.49f + lookY),
-            size = Size(size.width * 0.14f, size.height * 0.09f),
-            style = Stroke(width = 3.5.dp.toPx(), cap = StrokeCap.Round),
-        )
+        // The mouth. A hard press purses it into a small "o": a squishy being
+        // squeezed should look like it noticed there too, not only in the eyes.
+        // Contentment widens the smile and lifts its corners.
+        val purse = ((pressure - 0.35f) / 0.45f).coerceIn(0f, 1f)
+        val wide = 1f + 0.35f * mood.contentment
+        val mouthWidth = size.width * 0.14f * (1f - 0.55f * purse) * wide
+        val mouthHeight = size.height * (0.09f + 0.03f * mood.contentment) * (1f + 0.6f * purse)
+        val mouthLeft = size.width / 2f - mouthWidth / 2f + lookX
+        val mouthTop = size.height * 0.49f + lookY - size.height * 0.02f * mood.contentment
+        if (state != SquishyState.COMPRESSED && purse > 0.6f) {
+            drawOval(
+                color = OnLight,
+                topLeft = Offset(mouthLeft, mouthTop + mouthHeight * 0.25f),
+                size = Size(mouthWidth, mouthHeight * 0.75f),
+                style = Stroke(width = 3.5.dp.toPx()),
+            )
+        } else {
+            drawArc(
+                color = OnLight,
+                startAngle = if (state == SquishyState.COMPRESSED) 205f else 20f - 12f * mood.contentment,
+                sweepAngle = (if (state == SquishyState.RELAXING) 140f else 130f) + 24f * mood.contentment,
+                useCenter = false,
+                topLeft = Offset(mouthLeft, mouthTop),
+                size = Size(mouthWidth, mouthHeight),
+                style = Stroke(width = 3.5.dp.toPx(), cap = StrokeCap.Round),
+            )
+        }
     }
 }
 

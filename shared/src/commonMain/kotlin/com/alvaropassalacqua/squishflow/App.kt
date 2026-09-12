@@ -489,6 +489,15 @@ private fun FocusScreen(
     onManageApps: () -> Unit,
 ) {
     var tensionReleased by remember { mutableIntStateOf(0) }
+    // Every squeeze earns a word in the line above the body, for a beat.
+    var squeezes by remember { mutableIntStateOf(0) }
+    var reaction by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(squeezes) {
+        if (squeezes == 0) return@LaunchedEffect
+        reaction = SquishyVoice.reaction(uiState.squishyState, squeezes)
+        delay(1_400)
+        reaction = null
+    }
     val accent by animateColorAsState(
         targetValue = when (uiState.squishyState) {
             SquishyState.TENSE -> Coral
@@ -527,7 +536,7 @@ private fun FocusScreen(
             Spacer(Modifier.weight(0.45f))
 
             Text(
-                text = SquishyVoice.line(
+                text = reaction ?: SquishyVoice.line(
                     state = uiState.squishyState,
                     justCompleted = uiState.lastSessionCompleted,
                     completedBlocks = completedBlocks,
@@ -535,7 +544,7 @@ private fun FocusScreen(
                     remainingSeconds = if (uiState.isSessionActive) uiState.remainingSeconds else null,
                     daysAway = daysAway,
                 ),
-                color = Muted,
+                color = if (reaction != null) Ink else Muted,
                 fontSize = 15.sp,
                 textAlign = TextAlign.Center,
             )
@@ -550,6 +559,7 @@ private fun FocusScreen(
                 reducedMotion = reducedMotion,
                 closing = uiState.isSessionActive && uiState.remainingSeconds in 1..SquishyVoice.CLOSING_SECONDS,
                 onSquish = {
+                    squeezes++
                     if (!uiState.isSessionActive) {
                         tensionReleased = (tensionReleased + 1).coerceAtMost(3)
                     }

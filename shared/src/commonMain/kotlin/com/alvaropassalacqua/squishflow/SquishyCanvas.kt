@@ -70,6 +70,8 @@ internal fun SquishyStage(
     reducedMotion: Boolean = false,
     /** True for the last stretch of a block; the body quickens rather than settles. */
     closing: Boolean = false,
+    /** True where a finished block lands: eyes shut a moment, the smile widens. */
+    contented: Boolean = false,
     stageSize: androidx.compose.ui.unit.Dp = 292.dp,
 ) {
     val settles = state == SquishyState.RELAXING
@@ -83,7 +85,7 @@ internal fun SquishyStage(
         else -> 2800
     }
     val body = remember { SquishyPhysics(tuning = material.tuning) }
-    val mood = rememberFaceMood(reducedMotion)
+    val mood = rememberFaceMood(reducedMotion, contented)
     val haptics = rememberHaptics()
     val audio = rememberSquishAudio()
     val scope = rememberCoroutineScope()

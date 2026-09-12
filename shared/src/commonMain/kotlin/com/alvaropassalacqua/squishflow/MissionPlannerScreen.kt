@@ -290,6 +290,7 @@ fun SessionReflectionScreen(
                 accent = Sage,
                 material = shown,
                 reducedMotion = reducedMotion,
+                contented = true,
                 onSquish = {},
                 stageSize = 236.dp,
             )

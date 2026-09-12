@@ -53,6 +53,23 @@ object SquishyVoice {
         "Almost banked.",
     )
 
+    /** What it says when squeezed while waiting: small, and not the same twice running. */
+    private val squeezedIdle = listOf(
+        "Oof.",
+        "Mm.",
+        "Again.",
+        "That one went deep.",
+        "Still round. Just about.",
+        "Go on, then.",
+    )
+
+    /** Squeezed mid-block: shorter still, so it never becomes the thing you do. */
+    private val squeezedActive = listOf(
+        "Mm.",
+        "Still here.",
+        "Back to it.",
+    )
+
     private val completed = listOf(
         "That is one.",
         "Banked.",
@@ -104,6 +121,18 @@ object SquishyVoice {
                 "$minutesToNextBody more minutes to the next squishy."
             else -> idle.rotate(turn)
         }
+    }
+
+    /**
+     * The word for the [count]th squeeze in a row.
+     *
+     * The line above the body shows it for a moment and then returns to what
+     * it was saying. It is a reaction, not a conversation: mid-block the set
+     * is smaller and points back at the work.
+     */
+    fun reaction(state: SquishyState, count: Int): String = when (state) {
+        SquishyState.RELAXING -> squeezedActive.rotate(count.coerceAtLeast(0))
+        else -> squeezedIdle.rotate(count.coerceAtLeast(0))
     }
 
     private fun List<String>.rotate(turn: Int): String = this[turn % size]

@@ -19,6 +19,7 @@ class SquishyVoiceTest {
                     add(SquishyVoice.line(state, justCompleted, blocks, minutesToNextBody = 12))
                     add(SquishyVoice.line(state, justCompleted, blocks, remainingSeconds = 45))
                     add(SquishyVoice.line(state, justCompleted, blocks, daysAway = 9))
+                    add(SquishyVoice.reaction(state, blocks))
                 }
             }
         }
@@ -162,6 +163,15 @@ class SquishyVoiceTest {
         // returned to anything yet.
         val first = SquishyVoice.line(SquishyState.TENSE, false, 0)
         assertEquals(first, SquishyVoice.line(SquishyState.TENSE, false, 0, daysAway = 10))
+    }
+
+    @Test
+    fun aSqueezeMidBlockPointsBackAtTheWork() {
+        val idle = (0..5).map { SquishyVoice.reaction(SquishyState.TENSE, it) }.toSet()
+        val active = (0..5).map { SquishyVoice.reaction(SquishyState.RELAXING, it) }.toSet()
+        assertTrue(idle.size >= 5, "Idle squeezes should not repeat immediately: $idle")
+        assertTrue(active.size in 2..3, "Mid-block the set is deliberately small: $active")
+        assertTrue(active.all { it.length <= 12 }, "Mid-block reactions stay short: $active")
     }
 
     @Test
