@@ -129,13 +129,14 @@ internal fun SquishyFace(
     pressure: Float,
     mood: FaceMood,
     modifier: Modifier = Modifier,
+    temperament: SquishyMaterial.Temperament = SquishyMaterial.Temperament(),
 ) {
     Canvas(modifier) {
         val shift = (lookX / 8f).coerceIn(-7f, 7f)
         val verticalShift = (lookY / 10f).coerceIn(-4f, 4f)
         val eyeY = size.height * if (state == SquishyState.COMPRESSED) 0.47f else 0.43f
-        val eyeGap = size.width * 0.105f
-        val radius = if (state == SquishyState.COMPRESSED) 5.dp.toPx() else 7.5.dp.toPx()
+        val eyeGap = size.width * 0.105f * temperament.eyeGap
+        val radius = (if (state == SquishyState.COMPRESSED) 5.dp.toPx() else 7.5.dp.toPx()) * temperament.eyeScale
 
         val centre = Offset(
             x = size.width / 2f + shift + lookX + mood.gaze.x,
@@ -151,12 +152,12 @@ internal fun SquishyFace(
             // Blinking and squinting both close the eye, so they multiply rather
             // than fight: a blink during a hard squeeze still shuts completely.
             val squint = 1f - (pressure.coerceIn(0f, 1f) * 0.55f)
-            val open = (mood.openness * squint).coerceIn(0.04f, 1f)
+            val open = (mood.openness * squint * temperament.lids).coerceIn(0.04f, 1f)
             drawEye(left, radius, open)
             drawEye(right, radius, open)
         }
 
-        val blushAlpha = if (state == SquishyState.RELAXING) 0.42f else 0.25f
+        val blushAlpha = (if (state == SquishyState.RELAXING) 0.42f else 0.25f) * temperament.blush
         drawCircle(
             Blush.copy(alpha = blushAlpha),
             radius = 10.dp.toPx(),
@@ -172,7 +173,7 @@ internal fun SquishyFace(
         // squeezed should look like it noticed there too, not only in the eyes.
         // Contentment widens the smile and lifts its corners.
         val purse = ((pressure - 0.35f) / 0.45f).coerceIn(0f, 1f)
-        val wide = 1f + 0.35f * mood.contentment
+        val wide = (1f + 0.35f * mood.contentment) * temperament.smile
         val mouthWidth = size.width * 0.14f * (1f - 0.55f * purse) * wide
         val mouthHeight = size.height * (0.09f + 0.03f * mood.contentment) * (1f + 0.6f * purse)
         val mouthLeft = size.width / 2f - mouthWidth / 2f + lookX
@@ -188,7 +189,7 @@ internal fun SquishyFace(
             drawArc(
                 color = OnLight,
                 startAngle = if (state == SquishyState.COMPRESSED) 205f else 20f - 12f * mood.contentment,
-                sweepAngle = (if (state == SquishyState.RELAXING) 140f else 130f) + 24f * mood.contentment,
+                sweepAngle = ((if (state == SquishyState.RELAXING) 140f else 130f) + 24f * mood.contentment) * temperament.smile.coerceIn(0.8f, 1.1f),
                 useCenter = false,
                 topLeft = Offset(mouthLeft, mouthTop),
                 size = Size(mouthWidth, mouthHeight),

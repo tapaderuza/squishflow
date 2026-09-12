@@ -300,6 +300,7 @@ internal fun SquishyStage(
                 pressure = pressure,
                 mood = mood,
                 modifier = Modifier.fillMaxSize(),
+                temperament = material.temperament,
             )
         }
     }

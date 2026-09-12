@@ -184,3 +184,21 @@ class SettlingTest {
         assertEquals(base.settled(0f), base.settled(-2f))
     }
 }
+
+class TemperamentTest {
+    @Test
+    fun noTwoMaterialsWearTheSameFace() {
+        val faces = SquishyMaterial.entries.map { it.temperament }
+        assertEquals(faces.size, faces.toSet().size, "A collection with one face is five skins on one toy")
+    }
+
+    @Test
+    fun everyFaceStaysWithinWhatTheStatesCanStillExpress() {
+        SquishyMaterial.entries.forEach { m ->
+            val t = m.temperament
+            assertTrue(t.eyeScale in 0.7f..1.4f && t.eyeGap in 0.8f..1.25f, "${m.displayName} eyes")
+            assertTrue(t.lids in 0.7f..1f, "${m.displayName} must still be able to open its eyes")
+            assertTrue(t.smile in 0.6f..1.3f && t.blush in 0.3f..1.5f, "${m.displayName} mouth or blush")
+        }
+    }
+}

@@ -26,6 +26,7 @@ enum class SquishyMaterial(
     val unlockMinutes: Int,
     val tuning: Tuning,
     val finish: Finish,
+    val temperament: Temperament = Temperament(),
 ) {
     JELLY(
         displayName = "Jelly",
@@ -43,6 +44,8 @@ enum class SquishyMaterial(
         unlockMinutes = 60,
         tuning = Tuning(stiffness = 235f, damping = 13.5f, coupling = 26f, maxDisplacement = 0.26f),
         finish = Finish(gloss = 0.06f, rim = 0.16f, speckle = 0.10f, sheen = 0.04f, highlights = 6),
+        // Dense and unbothered: smaller eyes, a flatter smile, hardly blushes.
+        temperament = Temperament(eyeScale = 0.86f, smile = 0.82f, blush = 0.6f),
     ),
 
     MOCHI(
@@ -52,6 +55,8 @@ enum class SquishyMaterial(
         unlockMinutes = 180,
         tuning = Tuning(stiffness = 96f, damping = 11f, coupling = 38f, maxDisplacement = 0.38f),
         finish = Finish(gloss = 0.04f, rim = 0.07f, speckle = 0.14f, sheen = 0.03f, highlights = 5),
+        // Soft all the way through: heavy-lidded, the widest smile, blushes easily.
+        temperament = Temperament(eyeScale = 1.0f, lids = 0.86f, smile = 1.15f, blush = 1.3f),
     ),
 
     WATER_BALLOON(
@@ -61,6 +66,8 @@ enum class SquishyMaterial(
         unlockMinutes = 420,
         tuning = Tuning(stiffness = 74f, damping = 3.2f, coupling = 92f, maxDisplacement = 0.52f),
         finish = Finish(gloss = 0.46f, rim = 0.22f, speckle = 0.02f, sheen = 0.20f, highlights = 2),
+        // Sloshes about and looks it: big eyes set wide, an easy grin.
+        temperament = Temperament(eyeScale = 1.18f, eyeGap = 1.12f, smile = 1.05f, blush = 1.0f),
     ),
 
     BUBBLE(
@@ -70,6 +77,8 @@ enum class SquishyMaterial(
         unlockMinutes = 900,
         tuning = Tuning(stiffness = 150f, damping = 2.6f, coupling = 110f, maxDisplacement = 0.48f),
         finish = Finish(gloss = 0.55f, rim = 0.30f, speckle = 0.01f, sheen = 0.26f, highlights = 3),
+        // Weightless and a little startled: wide eyes, a small mouth, barely a blush.
+        temperament = Temperament(eyeScale = 1.25f, eyeGap = 0.95f, smile = 0.7f, blush = 0.45f),
     ),
     ;
 
@@ -86,6 +95,28 @@ enum class SquishyMaterial(
         val damping: Float,
         val coupling: Float,
         val maxDisplacement: Float,
+    )
+
+    /**
+     * The face a material wears.
+     *
+     * Materials already differ in the hand and in the ear; a collection whose
+     * five members share one face reads as five skins on one toy. These are
+     * multipliers on the base face, so every state and every mood still
+     * works — a stress ball still squints when pressed, it just starts from
+     * smaller eyes.
+     */
+    data class Temperament(
+        /** Eye size, 1 is jelly. */
+        val eyeScale: Float = 1f,
+        /** Distance between the eyes, 1 is jelly. */
+        val eyeGap: Float = 1f,
+        /** How open the eyes are at rest; below 1 reads as heavy-lidded. */
+        val lids: Float = 1f,
+        /** Smile width and sweep, 1 is jelly. */
+        val smile: Float = 1f,
+        /** Blush strength, 1 is jelly. */
+        val blush: Float = 1f,
     )
 
     /** Surface treatment. Alphas, so every material still reads in both states. */
